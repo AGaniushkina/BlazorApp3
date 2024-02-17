@@ -1,0 +1,98 @@
+﻿@page "/purchase"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using Smart.Blazor;
+
+<PageTitle>Purchase</PageTitle>
+
+<h1>Purchase</h1>
+
+    <EditForm Model="@Model" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <p>
+                From:<br />
+
+                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>
+            </p>
+            <p>
+                To:<br />
+                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList>
+            </p>
+            <p>
+                Departing:<br />
+                <InputDate @bind-Value="Model!.Departing" />
+            </p>
+            <p>
+                Returning:<br />
+                <InputDate @bind-Value="Model!.Returning" />
+            </p>
+            <p>
+                Passengers Count:<br />
+                <InputNumber @bind-Value="Model!.PassengersCount" />
+            </p>
+
+        </div>
+
+        <button type="submit">Find</button>
+    </EditForm>
+
+    <hr />
+    <div>
+        <p>From: @Model!.DirectionFrom</p>
+        <p>To: @Model!.DirectionTo</p>
+        <p>Departing: @Model!.Departing</p>
+        <p>Returning: @Model!.Returning</p>
+        <p>Passengers Count: @Model!.PassengersCount</p>
+    </div>
+
+
+@code {
+    public Flight2? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Submit()
+    {
+        //Logger.LogInformation("Id = {Id}", Model?.Id);
+    }
+
+    //public class Starship
+    //{
+    //    [Required]
+    //    [StringLength(10, ErrorMessage = "Id is too long.")]
+    //    public string? Id { get; set; }
+    //}
+    public class Flight2
+    {
+        [Required]
+        [StringLength(100, ErrorMessage = "String is too long.")]
+        public string? DirectionFrom { get; set; } = "";
+        public string? DirectionTo { get; set; } = "";
+        public DateTime Departing { get; set; } = DateTime.Now;
+        public DateTime Returning { get; set; } = DateTime.Now.AddHours(24);
+        public int PassengersCount { get; set; } = 1;
+
+    }
+
+    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+
+    string[] selectedItemsFrom = new string[] { };
+    string[] selectedItemsTo = new string[] { };
+
+    private void OnItemClickFrom(Event ev)
+    {
+        DropDownListItemClickEventDetail detail = ev["Detail"];
+        Model!.DirectionFrom = selectedItemsFrom[0];
+    }
+
+    private void OnItemClickTo(Event ev)
+    {
+        DropDownListItemClickEventDetail detail = ev["Detail"];
+        Model!.DirectionTo = selectedItemsTo[0];
+    }
+}
+
+

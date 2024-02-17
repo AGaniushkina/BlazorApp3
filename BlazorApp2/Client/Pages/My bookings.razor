@@ -1,0 +1,40 @@
+﻿@page "/booking"
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>My Booking</PageTitle>
+
+<h3>My Booking</h3>
+
+<div>
+    <EditForm Model="@Model">
+
+        <p>
+            <br />
+            <InputText @bind-Value="Model!.login" />
+        </p>
+
+        <p>
+            <br />
+            <InputText @bind-Value="Model!.Id" />
+        </p>
+
+    </EditForm>
+
+    <button type="submit">Find</button>
+</div>
+
+@code {
+
+    public Passenger? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public class Passenger
+    {
+        [Required]
+        public string? login { get; set; } = "Surname or email";
+        public string? Id { get; set; } = "Order ID, booking ID or eTicket number";
+    }
+}
