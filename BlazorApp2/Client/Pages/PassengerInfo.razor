@@ -1,0 +1,125 @@
+﻿@page "/passengers"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using BlazorApp2.Shared
+@using Smart.Blazor;
+
+<PageTitle>Passengers Info</PageTitle>
+
+<h3>Passenger INFO</h3>
+
+<EditForm Model="@Model" OnValidSubmit="@Submit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <p>
+            <RadioButton Name="sexs" OnCheckValue="OnRadioButtonCheckValueF">Female</RadioButton>
+            <RadioButton Name="sexs" OnCheckValue="OnRadioButtonCheckValueM">Male</RadioButton>
+
+        </p>
+        <p>
+            First name:<br />
+
+            <InputText @bind-Value="Model!.FirstName" />
+        </p>
+        <p>
+            Last name:<br />
+
+            <InputText @bind-Value="Model!.LastName" />
+        </p>
+        <p>
+            Date of birth:<br />
+            <InputDate @bind-Value="Model!.DateOfBirth" />
+        </p>
+        <p>
+            Document:<br />
+            <DropDownList DataSource="@documents" Filterable="true" @bind-SelectedValues="@selectedItems" OnItemClick="OnItemClick"></DropDownList>
+        </p>
+        <p hidden="@hiddenDN">
+            Document number:<br />
+            <InputText @bind-Value="Model!.DocumentNumber" />
+        </p>
+        <p hidden="@hiddenDN_ED">
+            Document number:<br />
+            <InputText @bind-Value="Model!.DocumentNumber" /><br />
+
+            Expiry date:<br />
+            <InputDate @bind-Value="Model!.ExpiryDate" />
+        </p>
+        <p hidden="@hiddenDN_DS">
+            Series:<br />
+            <InputText @bind-Value="Model!.DocumentSeries" /><br />
+
+            Number:<br />
+            <InputText @bind-Value="Model!.DocumentNumber" />
+        </p>
+        
+
+    </div>
+
+    <button type="submit">Checkout</button>
+</EditForm>
+
+<hr />
+<div>
+    <p>Sex: @Model!.Sex</p>
+    <p>First name: @Model!.FirstName</p>
+    <p>Last name: @Model!.LastName</p>
+    <p>Date of birth: @Model!.DateOfBirth</p>
+    <p>Document: @Model!.Document</p>
+    <p>Document number: @Model!.DocumentNumber</p>
+</div>
+
+@code {
+    public PassengersInfo? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Submit()
+    {
+        //Logger.LogInformation("Id = {Id}", Model?.Id);
+    }
+
+    string[] documents = new string[] { "Russian national passport", "Russian international passport", "Other", "Birth Certificate", "Military ID Card" };
+
+    string[] selectedItems = new string[] { };
+
+    private void OnItemClick(Event ev)
+    {
+        DropDownListItemClickEventDetail detail = ev["Detail"];
+        Model!.Document = selectedItems[0];
+        if (selectedItems[0] == "Russian national passport")
+        {
+            hiddenDN = false;
+            hiddenDN_ED = true;
+            hiddenDN_DS = true;
+        }
+        else if (selectedItems[0] == "Russian international passport")
+        {
+            hiddenDN = true;
+            hiddenDN_ED = false;
+            hiddenDN_DS = true;
+        }
+        else
+        {
+            hiddenDN = true;
+            hiddenDN_ED = true;
+            hiddenDN_DS = false;
+        }
+    }
+    private void OnRadioButtonCheckValueM(Event ev)
+    {
+        Model!.Sex = "Male";
+    }
+    private void OnRadioButtonCheckValueF(Event ev)
+    {
+        Model!.Sex = "Female";
+    }
+
+    bool hiddenDN = true;
+    bool hiddenDN_ED = true;
+    bool hiddenDN_DS = true;
+}
+
