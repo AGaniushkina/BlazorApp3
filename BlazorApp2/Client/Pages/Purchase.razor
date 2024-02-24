@@ -3,6 +3,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Smart.Blazor;
+@using BlazorApp2.Shared;
+@using Newtonsoft.Json;
+@inject HttpClient client;
 
 <PageTitle>Purchase</PageTitle>
 
@@ -15,11 +18,11 @@
             <p>
                 From:<br />
 
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>
+                <DropDownList DataSource="@departureCities" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>
             </p>
             <p>
                 To:<br />
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList>
+                <DropDownList DataSource="@arrivalCities" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList>
             </p>
             <p>
                 Departing:<br />
@@ -51,8 +54,27 @@
 
 @code {
     public Flight2? Model { get; set; }
+    public List<Route> Routes { get; set; } = new List<Route>();
 
-    protected override void OnInitialized() => Model ??= new();
+    protected override async Task OnInitializedAsync()
+    {
+        Model ??= new();
+
+        var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri("https://localhost:7123/api/routes")
+            };
+
+        using (var response = await client.SendAsync(request))
+        {
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            if (body != null)
+                Routes = JsonConvert.DeserializeObject<IEnumerable<Route>>(body).ToList();
+        }
+        departureCities = Routes?.Select(r => r.DepartureCity).Distinct().ToList();
+    }
 
     private void Submit()
     {
@@ -77,7 +99,8 @@
 
     }
 
-    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+    List<string> departureCities = new List<string>();
+    List<string> arrivalCities = new List<string>();
 
     string[] selectedItemsFrom = new string[] { };
     string[] selectedItemsTo = new string[] { };
@@ -86,6 +109,11 @@
     {
         DropDownListItemClickEventDetail detail = ev["Detail"];
         Model!.DirectionFrom = selectedItemsFrom[0];
+
+        arrivalCities = Routes
+                            .Where(r => r.DepartureCity == selectedItemsFrom[0])
+                            .Select(r => r.ArrivalCity)
+                            .ToList();
     }
 
     private void OnItemClickTo(Event ev)
