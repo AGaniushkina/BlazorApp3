@@ -7,40 +7,89 @@
 @using Newtonsoft.Json;
 @inject HttpClient client;
 
+<style>
+    smart-carousel {
+        width: 100%;
+        height: 300px;
+    }
+
+    #carouselWithCaptions .smart-carousel-item-label {
+        padding: 3px;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .card-body {
+        margin-bottom: 100px;
+    }
+
+    .card {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+        position: absolute;
+        top: 95%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .container {
+        display: flex;
+        padding: 5px;
+    }
+</style>
+
 <PageTitle>Purchase</PageTitle>
 
 <h1>Purchase</h1>
-
+<div style="position: relative;">
+<div class="card-body">
+    <Carousel Class="slide" AutoPlay DataSource="dataSource" HideIndicators Interval="8000" Loop SlideShow />
+</div>
+    <div class="card">
     <EditForm Model="@Model" OnValidSubmit="@Submit">
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div>
-            <p>
-                From:<br />
-
-                <DropDownList DataSource="@departureCities" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>
-            </p>
-            <p>
-                To:<br />
-                <DropDownList DataSource="@arrivalCities" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList>
-            </p>
-            <p>
-                Departing:<br />
-                <InputDate @bind-Value="Model!.Departing" />
-            </p>
-            <p>
-                Returning:<br />
-                <InputDate @bind-Value="Model!.Returning" />
-            </p>
-            <p>
+            <div class="container">
+                    <DropDownList 
+                        style="margin: 10px;" 
+                        DataSource="@directions" 
+                        Filterable="true" @bind-SelectedValues="@selectedItemsFrom" 
+                        OnItemClick="OnItemClickFrom" 
+                        Label="Город вылета"></DropDownList>
+                    <DropDownList 
+                        style="margin: 10px;" 
+                        DataSource="@directions" 
+                        Filterable="true" @bind-SelectedValues="@selectedItemsTo" 
+                        OnItemClick="OnItemClickTo" 
+                        Label="Город прилета"></DropDownList>
+            </div>
+            <div class="container">
+                <DateInput style="margin: 10px;"
+                    OnChange=@OnChangeDepartingDate
+                    Locale="ru"
+                    Placeholder="Туда"></DateInput>
+                <DateInput style="margin: 10px;"
+                    OnChange=@OnChangeReturningDate
+                    Locale="ru"
+                    Placeholder="Обратно"></DateInput>
+            </div>
+@*             <p>
                 Passengers Count:<br />
                 <InputNumber @bind-Value="Model!.PassengersCount" />
-            </p>
+            </p> *@
 
         </div>
-
-        <button type="submit">Find</button>
+            <div style="display: flex; justify-content: flex-end;">
+            <Button Class="primary">Найти</Button>
+        </div>
+        @* <button type="submit">Find</button> *@
     </EditForm>
+    </div>
+</div>
 
     <hr />
     <div>
@@ -99,6 +148,16 @@
 
     }
 
+    List<Dictionary<string, string>> dataSource = new List<Dictionary<string, string>>()
+    {
+        // TODO: Скачать изображения и поместитьв проект (использовать относительный путь)
+        new Dictionary<string, string>() { { "image", "https://img.freepik.com/free-photo/airplane-sunset_1150-8338.jpg?t=st=1711895847~exp=1711899447~hmac=f384f55efd0b93894b1695d6a6c2e63b4e13cfe0295dfa11db140737c1b84b9f&w=996" } },
+        new Dictionary<string, string>() { { "image", "https://img.freepik.com/free-photo/plane-passing-by-sun-cloudy-day_1286-143.jpg?t=st=1711895909~exp=1711899509~hmac=b4a0afd92b535ff3792f3794a6439aedb051548889c40a7309dfeb3bf73c8124&w=1060" } }
+    };
+
+    // For tests without mongodb
+    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+
     List<string> departureCities = new List<string>();
     List<string> arrivalCities = new List<string>();
 
@@ -120,6 +179,18 @@
     {
         DropDownListItemClickEventDetail detail = ev["Detail"];
         Model!.DirectionTo = selectedItemsTo[0];
+    }
+
+    private void OnChangeDepartingDate(Event eventObj)
+    {
+        DateInputChangeEventDetail detail = eventObj["Detail"];
+        Model!.Departing = detail.Value.AddDays(1);
+    }
+
+    private void OnChangeReturningDate(Event eventObj)
+    {
+        DateInputChangeEventDetail detail = eventObj["Detail"];
+        Model!.Returning = detail.Value.AddDays(1);
     }
 }
 
