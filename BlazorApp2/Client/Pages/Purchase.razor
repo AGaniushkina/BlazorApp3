@@ -77,19 +77,31 @@
                     Locale="ru"
                     Placeholder="Обратно"></DateInput>
             </div>
-@*             <p>
-                Passengers Count:<br />
-                <InputNumber @bind-Value="Model!.PassengersCount" />
-            </p> *@
-
         </div>
             <div style="display: flex; justify-content: flex-end;">
             <Button Class="primary">Найти</Button>
         </div>
-        @* <button type="submit">Find</button> *@
     </EditForm>
     </div>
 </div>
+
+<Table Id="basicTable" Tooltip>
+    <tr hidden>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Quantity</th>
+        <th>Date</th>
+        <th>Action</th>
+    </tr>
+    @foreach (var record in dataRecords)
+    {
+        <tr hidden>
+            <td>@record.ArrivalDate</td>
+            <td>@record.FlightNumber</td>
+            <td><div class="actions-container"><span class="material-icons">edit</span><span class="material-icons">delete_forever</span></div></td>
+        </tr>
+    }
+</Table>
 
     <hr />
     <div>
@@ -104,6 +116,7 @@
 @code {
     public Flight2? Model { get; set; }
     public List<Route> Routes { get; set; } = new List<Route>();
+    private List<Flight> dataRecords;
 
     protected override async Task OnInitializedAsync()
     {
