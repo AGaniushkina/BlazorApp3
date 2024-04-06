@@ -15,5 +15,10 @@ public class Flight
     public double Price { get; set; }
     public int AvailableSeatsCount { get; set; }
     // TODO: связать с таблицей route
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? RouteId { get; set; }
+    //public string? DepartureCity { get; set; }
+    //public string? ArrivalCity { get; set; }
+    [BsonIgnoreIfNull]
     public Route? Route { get; set; }
 }
