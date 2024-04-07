@@ -5,6 +5,7 @@
 @using Smart.Blazor;
 @using BlazorApp2.Shared;
 @using Newtonsoft.Json;
+@using BlazorApp2.Client.Components;
 @inject HttpClient client;
 
 <style>
@@ -23,7 +24,7 @@
         margin-bottom: 100px;
     }
 
-    .card {
+    .flights-card {
         background-color: #f9f9f9;
         border-radius: 10px;
         padding: 20px;
@@ -106,6 +107,12 @@
     td {
         text-align: center; /* выровнять содержимое ячейки по центру */
     }
+
+    /* Dialog window for booking */
+    .smart-element.smart-window {
+        width: 700px;
+        height: 600px;
+    }
 </style>
 
 <PageTitle>Купить билет</PageTitle>
@@ -115,7 +122,7 @@
 <div class="card-body">
     <Carousel Class="slide" AutoPlay DataSource="dataSource" HideIndicators Interval="8000" Loop SlideShow />
 </div>
-    <div class="card">
+    <div class="flights-card">
     <EditForm Model="@Model" OnValidSubmit="@Submit">
         <DataAnnotationsValidator />
         <ValidationSummary />
@@ -123,13 +130,13 @@
             <div class="container">
                     <DropDownList 
                         style="margin: 10px;"
-                        DataSource="@departureCities"
+                        DataSource="@directions"
                         Filterable="true" @bind-SelectedValues="@selectedItemsFrom" 
                         OnItemClick="OnItemClickFrom" 
                         Label="Город вылета"></DropDownList>
                     <DropDownList 
                         style="margin: 10px;"
-                        DataSource="@arrivalCities"
+                        DataSource="@directions"
                         Filterable="true" @bind-SelectedValues="@selectedItemsTo" 
                         OnItemClick="OnItemClickTo" 
                         Label="Город прилета"></DropDownList>
@@ -176,7 +183,12 @@
                     <td>@item.Price ₽</td>
                     <td>
                         <div class="actions-container">
-                            <Button Class="primary outlined small">Забронировать</Button>
+                            <Button 
+                                id="openBookingFormButton" 
+                                Class="primary outlined small"
+                                OnClick="() => OpenBookingForm(item)">
+                                Выбрать рейс
+                            </Button>
                         </div>
                     </td>
                 </tr>
@@ -185,7 +197,13 @@
     </table>
 }
 
-<hr />
+@if (currentFlight != null) {
+<Window Style="width=500px;" IsOpened="@openedBookingForm" label="Бронирование">
+        <BookingForm Flight="currentFlight"></BookingForm>
+</Window>
+}
+
+@* <hr />
     <div>
         <p>From: @Model!.DirectionFrom</p>
         <p>To: @Model!.DirectionTo</p>
@@ -193,12 +211,14 @@
         <p>Returning: @Model!.Returning</p>
         <p>Passengers Count: @Model!.PassengersCount</p>
     </div>
-    <hr />
+<hr /> *@
 
 @code {
     public Flight2? Model { get; set; }
     public List<Route> Routes { get; set; } = new List<Route>();
     private List<Flight> Flights = new List<Flight>();
+    private bool openedBookingForm = false;
+    private Flight? currentFlight { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -225,12 +245,6 @@
         //Logger.LogInformation("Id = {Id}", Model?.Id);
     }
 
-    //public class Starship
-    //{
-    //    [Required]
-    //    [StringLength(10, ErrorMessage = "Id is too long.")]
-    //    public string? Id { get; set; }
-    //}
     public class Flight2
     {
         [Required]
@@ -252,7 +266,7 @@
     };
 
     // For tests without mongodb
-    // string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
 
     List<string> departureCities = new List<string>();
     List<string> arrivalCities = new List<string>();
@@ -308,5 +322,11 @@
             if (body != null)
                 Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
         }
+    }
+
+    private void OpenBookingForm(Flight? flight)
+    {
+        currentFlight = flight;
+        openedBookingForm = !openedBookingForm;
     }
 }

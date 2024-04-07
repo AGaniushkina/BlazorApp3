@@ -1,0 +1,69 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using Smart.Blazor;
+@using BlazorApp2.Shared;
+@using Newtonsoft.Json;
+@inject HttpClient client;
+
+<style>
+	.basic-input {
+		width: 100%;
+	}
+
+	.basic-input + .basic-input {
+		margin-top: 10px;
+	}
+
+	.options-container {
+		display: flex;
+		flex-direction: column;
+	}
+
+    .container {
+        display: flex;
+        padding: 5px;
+    }
+
+	.info-text {
+		margin-bottom: 5px;
+		margin-top: 3px;
+	}
+</style>
+
+<div class="booking-container">
+	<h3>Бронирование рейса @Flight?.FlightNumber (@Flight?.Price руб.)</h3>
+	<p class="info-text">
+		Пожалуйста, введите данные латинскими буквами
+	</p>
+    <div class="container">
+        <Input Style="margin: 10px;" class="basic-input" Placeholder="Фамилия" />
+		<Input Style="margin: 10px;" class="basic-input" Placeholder="Имя" />
+		<Input class="basic-input" Placeholder="Отчество" />
+    </div>
+	<div class="container">
+		<div class="options-container">
+			<RadioButton>Мужской</RadioButton>
+			<RadioButton>Женский</RadioButton>
+		</div>
+	</div>
+	<p class="info-text">Информация о паспорте</p>
+	<div class="container">
+		<DateInput Style="margin: 10px;" Class="basic-input" />
+		<Input class="basic-input" Placeholder="Серия и номер" />
+	</div>
+	<p class="info-text">Контактные данные для заказа</p>
+	<div class="container">
+		<Input Style="margin: 10px;" class="basic-input" Placeholder="Почта" />
+		<Input class="basic-input" Placeholder="Номер телефона" />
+	</div>
+	<Button style="display: flex; justify-content: flex-end;"
+			Class="primary outlined small">
+		Забронировать
+	</Button>
+</div>
+
+@code {
+	[Parameter]
+	public Flight? Flight { get; set; }
+}
