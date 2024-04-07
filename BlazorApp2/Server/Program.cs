@@ -8,6 +8,7 @@ builder.Services.Configure<AirportDatabaseSettings>(
     builder.Configuration.GetSection("AirportDatabase"));
 
 builder.Services.AddSingleton<RoutesService>();
+builder.Services.AddSingleton<FlightsService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(

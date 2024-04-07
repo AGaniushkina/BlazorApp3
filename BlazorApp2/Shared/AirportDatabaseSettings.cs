@@ -7,4 +7,6 @@ public class AirportDatabaseSettings
     public string DatabaseName { get; set; } = null!;
 
     public string RoutesCollectionName { get; set; } = null!;
+
+    public string FlightsCollectionName { get; set; } = null!;
 }
