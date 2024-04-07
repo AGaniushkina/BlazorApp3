@@ -54,7 +54,7 @@
         border: none;
         padding: 10px 15px;
         background: #EDEDED;
-        font-size: 14px;
+        font-size: 16px;
         border-top: 1px solid #ddd;
     }
 
@@ -82,7 +82,7 @@
         text-align: left;
         border: none;
         padding: 10px 15px;
-        font-size: 14px;
+        font-size: 16px;
         vertical-align: top;
         text-align: center; /* выровнять содержимое ячейки по центру */
     }
@@ -108,9 +108,9 @@
     }
 </style>
 
-<PageTitle>Purchase</PageTitle>
+<PageTitle>Купить билет</PageTitle>
 
-<h1>Purchase</h1>
+<h1>Купить билет</h1>
 <div style="position: relative;">
 <div class="card-body">
     <Carousel Class="slide" AutoPlay DataSource="dataSource" HideIndicators Interval="8000" Loop SlideShow />
@@ -122,14 +122,14 @@
         <div>
             <div class="container">
                     <DropDownList 
-                        style="margin: 10px;" 
-                        DataSource="@directions" 
+                        style="margin: 10px;"
+                        DataSource="@departureCities"
                         Filterable="true" @bind-SelectedValues="@selectedItemsFrom" 
                         OnItemClick="OnItemClickFrom" 
                         Label="Город вылета"></DropDownList>
                     <DropDownList 
-                        style="margin: 10px;" 
-                        DataSource="@directions" 
+                        style="margin: 10px;"
+                        DataSource="@arrivalCities"
                         Filterable="true" @bind-SelectedValues="@selectedItemsTo" 
                         OnItemClick="OnItemClickTo" 
                         Label="Город прилета"></DropDownList>
@@ -146,43 +146,46 @@
             </div>
         </div>
             <div style="display: flex; justify-content: flex-end;">
-            <Button Class="primary">Найти</Button>
+            <Button Class="primary" OnClick="@GetFlights">Найти</Button>
         </div>
     </EditForm>
     </div>
 </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Вылет</th>
-            <th>Прилет</th>
-            <th>Рейс</th>
-            <th>Самолет</th>
-            <th>Цена</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Flights)
-        {
+@if (Flights.Any())
+{
+    <table class="table">
+        <thead>
             <tr>
-                <td>@item.DepartureDate.ToString("HH:mm")</td>
-                <td>@item.ArrivalDate.ToString("HH:mm")</td>
-                <td>@item.FlightNumber</td>
-                <td>@item.Plane</td>
-                <td>@item.Price</td>
-                <td>
-                    <div class="actions-container">
-                        <Button Class="primary outlined small">Забронировать</Button>
-                    </div>
-                </td>
+                <th>Вылет</th>
+                <th>Прилет</th>
+                <th>Рейс</th>
+                <th>Самолет</th>
+                <th>Цена</th>
+                <th style="width: 150px;"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Flights)
+            {
+                <tr>
+                    <td>@item.DepartureDate.ToString("HH:mm")</td>
+                    <td>@item.ArrivalDate.ToString("HH:mm")</td>
+                    <td>@item.FlightNumber</td>
+                    <td>@item.Plane</td>
+                    <td>@item.Price ₽</td>
+                    <td>
+                        <div class="actions-container">
+                            <Button Class="primary outlined small">Забронировать</Button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
-    <hr />
+<hr />
     <div>
         <p>From: @Model!.DirectionFrom</p>
         <p>To: @Model!.DirectionTo</p>
@@ -215,21 +218,6 @@
                 Routes = JsonConvert.DeserializeObject<IEnumerable<Route>>(body).ToList();
         }
         departureCities = Routes?.Select(r => r.DepartureCity).Distinct().ToList();
-
-        // TODO: перенести!!
-        var requestFlights = new HttpRequestMessage
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri("https://localhost:7123/api/flights")
-            };
-
-        using (var response = await client.SendAsync(requestFlights))
-        {
-            response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            if (body != null)
-                Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
-        }
     }
 
     private void Submit()
@@ -258,12 +246,13 @@
     List<Dictionary<string, string>> dataSource = new List<Dictionary<string, string>>()
     {
         // TODO: Скачать изображения и поместитьв проект (использовать относительный путь)
-        new Dictionary<string, string>() { { "image", "https://img.freepik.com/free-photo/airplane-sunset_1150-8338.jpg?t=st=1711895847~exp=1711899447~hmac=f384f55efd0b93894b1695d6a6c2e63b4e13cfe0295dfa11db140737c1b84b9f&w=996" } },
-        new Dictionary<string, string>() { { "image", "https://img.freepik.com/free-photo/plane-passing-by-sun-cloudy-day_1286-143.jpg?t=st=1711895909~exp=1711899509~hmac=b4a0afd92b535ff3792f3794a6439aedb051548889c40a7309dfeb3bf73c8124&w=1060" } }
+        new Dictionary<string, string>() { { "image", "./CarouselImage/plane-passing-by-sun-cloudy-day.jpg" } },
+        new Dictionary<string, string>() { { "image", "./CarouselImage/wing-airplane-blue-sky-twilight-sunset.jpg" } },
+        new Dictionary<string, string>() { { "image", "./CarouselImage/young-female-traveler-enjoying-rural-surroundings.jpg" } }
     };
 
     // For tests without mongodb
-    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+    // string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
 
     List<string> departureCities = new List<string>();
     List<string> arrivalCities = new List<string>();
@@ -299,6 +288,25 @@
         DateInputChangeEventDetail detail = eventObj["Detail"];
         Model!.Returning = detail.Value.AddDays(1);
     }
+
+    private async Task GetFlights()
+    {
+        string? routeId = Routes.Where(r => r.DepartureCity == Model!.DirectionFrom
+                                && r.ArrivalCity == Model!.DirectionTo)
+                                .Select(r => r.Id).SingleOrDefault();
+
+        var requestFlights = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://localhost:7123/api/flights?routeId={routeId}")
+            };
+
+        using (var response = await client.SendAsync(requestFlights))
+        {
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            if (body != null)
+                Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
+        }
+    }
 }
-
-

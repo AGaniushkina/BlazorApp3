@@ -1,5 +1,6 @@
 ﻿using BlazorApp2.Shared;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace BlazorApp2.Server.Services;
@@ -43,4 +44,7 @@ public class FlightsService
 
     public async Task RemoveAsync(string id) =>
         await _flightsCollection.DeleteOneAsync(x => x.Id == id);
+
+    public async Task<List<Flight>> GetByCityAsync(string? routeId) =>
+        await _flightsCollection.Find(x=>x.RouteId == routeId).ToListAsync();
 }
