@@ -3,43 +3,207 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using Smart.Blazor;
+@using BlazorApp2.Shared;
+@using Newtonsoft.Json;
+@using BlazorApp2.Client.Components;
+@inject HttpClient client;
 
-<PageTitle>Purchase</PageTitle>
+<style>
+    smart-carousel {
+        width: 100%;
+        height: 300px;
+    }
 
-<h1>Purchase</h1>
+    #carouselWithCaptions .smart-carousel-item-label {
+        padding: 3px;
+        background-color: rgba(0, 0, 0, 0.3);
+        color: white;
+    }
 
+    .card-body {
+        margin-bottom: 100px;
+    }
+
+    .flights-card {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        
+        position: absolute;
+        top: 95%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .container {
+        display: flex;
+        padding: 5px;
+    }
+
+    /*table style*/
+    .table {
+        width: 100%;
+        border: none;
+        margin-bottom: 20px;
+        border-collapse: separate;
+    }
+    
+    .table thead th {
+        font-weight: bold;
+        text-align: left;
+        border: none;
+        padding: 10px 15px;
+        background: #EDEDED;
+        font-size: 16px;
+        border-top: 1px solid #ddd;
+    }
+
+    .table tr th:first-child, .table tr td:first-child {
+        border-left: 1px solid #ddd;
+    }
+
+    .table tr th:last-child, .table tr td:last-child {
+        border-right: 1px solid #ddd;
+    }
+
+    .table thead tr th:first-child {
+        border-radius: 20px 0 0 0;
+    }
+
+    .table thead tr th:last-child {
+        border-radius: 0 20px 0 0;
+    }
+
+    .table thead tr th {
+        text-align: center; /* выровнять содержимое ячейки по центру */
+    }
+
+    .table tbody td {
+        text-align: left;
+        border: none;
+        padding: 10px 15px;
+        font-size: 16px;
+        vertical-align: top;
+        text-align: center; /* выровнять содержимое ячейки по центру */
+    }
+
+    .table tbody tr:nth-child(even) {
+        background: #F8F8F8;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: 1px solid #ddd;
+    }
+
+    .table tbody tr:last-child td:first-child {
+        border-radius: 0 0 0 20px;
+    }
+
+    .table tbody tr:last-child td:last-child {
+        border-radius: 0 0 20px 0;
+    }
+
+    td {
+        text-align: center; /* выровнять содержимое ячейки по центру */
+    }
+
+    /* Dialog window for booking */
+    .smart-element.smart-window {
+        width: 700px;
+        height: 600px;
+    }
+</style>
+
+<PageTitle>Купить билет</PageTitle>
+
+<h1>Купить билет</h1>
+<div style="position: relative;">
+<div class="card-body">
+    <Carousel Class="slide" AutoPlay DataSource="dataSource" HideIndicators Interval="8000" Loop SlideShow />
+</div>
+    <div class="flights-card">
     <EditForm Model="@Model" OnValidSubmit="@Submit">
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div>
-            <p>
-                From:<br />
-
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>
-            </p>
-            <p>
-                To:<br />
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList>
-            </p>
-            <p>
-                Departing:<br />
-                <InputDate @bind-Value="Model!.Departing" />
-            </p>
-            <p>
-                Returning:<br />
-                <InputDate @bind-Value="Model!.Returning" />
-            </p>
-            <p>
-                Passengers Count:<br />
-                <InputNumber @bind-Value="Model!.PassengersCount" />
-            </p>
-
+            <div class="container">
+                    <DropDownList 
+                        style="margin: 10px;"
+                        DataSource="@departureCities"
+                        Filterable="true" @bind-SelectedValues="@selectedItemsFrom" 
+                        OnItemClick="OnItemClickFrom" 
+                        Label="Город вылета"></DropDownList>
+                    <DropDownList 
+                        style="margin: 10px;"
+                        DataSource="@arrivalCities"
+                        Filterable="true" @bind-SelectedValues="@selectedItemsTo" 
+                        OnItemClick="OnItemClickTo" 
+                        Label="Город прилета"></DropDownList>
+            </div>
+            <div class="container">
+                <DateInput style="margin: 10px;"
+                    OnChange=@OnChangeDepartingDate
+                    Locale="ru"
+                    Placeholder="Туда"></DateInput>
+                <DateInput style="margin: 10px;"
+                    OnChange=@OnChangeReturningDate
+                    Locale="ru"
+                    Placeholder="Обратно"></DateInput>
+            </div>
         </div>
-
-        <button type="submit">Find</button>
+            <div style="display: flex; justify-content: flex-end;">
+            <Button Class="primary" OnClick="@GetFlights">Найти</Button>
+        </div>
     </EditForm>
+    </div>
+</div>
 
-    <hr />
+@if (Flights.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Вылет</th>
+                <th>Прилет</th>
+                <th>Рейс</th>
+                <th>Самолет</th>
+                <th>Цена</th>
+                <th style="width: 150px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Flights)
+            {
+                <tr>
+                    <td>@item.DepartureDate.ToString("HH:mm")</td>
+                    <td>@item.ArrivalDate.ToString("HH:mm")</td>
+                    <td>@item.FlightNumber</td>
+                    <td>@item.Plane</td>
+                    <td>@item.Price ₽</td>
+                    <td>
+                        <div class="actions-container">
+                            <Button 
+                                id="openBookingFormButton" 
+                                Class="primary outlined small"
+                                OnClick="() => OpenBookingForm(item)">
+                                Выбрать рейс
+                            </Button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (currentFlight != null) {
+<Window Style="width=500px;" IsOpened="@openedBookingForm" label="Бронирование">
+        <BookingForm Flight="currentFlight"></BookingForm>
+</Window>
+}
+
+@* <hr />
     <div>
         <p>From: @Model!.DirectionFrom</p>
         <p>To: @Model!.DirectionTo</p>
@@ -47,24 +211,40 @@
         <p>Returning: @Model!.Returning</p>
         <p>Passengers Count: @Model!.PassengersCount</p>
     </div>
-
+<hr /> *@
 
 @code {
     public Flight2? Model { get; set; }
+    public List<Route> Routes { get; set; } = new List<Route>();
+    private List<Flight> Flights = new List<Flight>();
+    private bool openedBookingForm = false;
+    private Flight? currentFlight { get; set; }
 
-    protected override void OnInitialized() => Model ??= new();
+    protected override async Task OnInitializedAsync()
+    {
+        Model ??= new();
+
+        var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri("https://localhost:7123/api/routes")
+            };
+
+        using (var response = await client.SendAsync(request))
+        {
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            if (body != null)
+                Routes = JsonConvert.DeserializeObject<IEnumerable<Route>>(body).ToList();
+        }
+        departureCities = Routes?.Select(r => r.DepartureCity).Distinct().ToList();
+    }
 
     private void Submit()
     {
         //Logger.LogInformation("Id = {Id}", Model?.Id);
     }
 
-    //public class Starship
-    //{
-    //    [Required]
-    //    [StringLength(10, ErrorMessage = "Id is too long.")]
-    //    public string? Id { get; set; }
-    //}
     public class Flight2
     {
         [Required]
@@ -77,7 +257,19 @@
 
     }
 
-    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+    List<Dictionary<string, string>> dataSource = new List<Dictionary<string, string>>()
+    {
+        // TODO: Скачать изображения и поместитьв проект (использовать относительный путь)
+        new Dictionary<string, string>() { { "image", "./CarouselImage/plane-passing-by-sun-cloudy-day.jpg" } },
+        new Dictionary<string, string>() { { "image", "./CarouselImage/wing-airplane-blue-sky-twilight-sunset.jpg" } },
+        new Dictionary<string, string>() { { "image", "./CarouselImage/young-female-traveler-enjoying-rural-surroundings.jpg" } }
+    };
+
+    // For tests without mongodb
+    // string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+
+    List<string> departureCities = new List<string>();
+    List<string> arrivalCities = new List<string>();
 
     string[] selectedItemsFrom = new string[] { };
     string[] selectedItemsTo = new string[] { };
@@ -86,6 +278,11 @@
     {
         DropDownListItemClickEventDetail detail = ev["Detail"];
         Model!.DirectionFrom = selectedItemsFrom[0];
+
+        arrivalCities = Routes
+                            .Where(r => r.DepartureCity == selectedItemsFrom[0])
+                            .Select(r => r.ArrivalCity)
+                            .ToList();
     }
 
     private void OnItemClickTo(Event ev)
@@ -93,6 +290,43 @@
         DropDownListItemClickEventDetail detail = ev["Detail"];
         Model!.DirectionTo = selectedItemsTo[0];
     }
+
+    private void OnChangeDepartingDate(Event eventObj)
+    {
+        DateInputChangeEventDetail detail = eventObj["Detail"];
+        Model!.Departing = detail.Value.AddDays(1);
+    }
+
+    private void OnChangeReturningDate(Event eventObj)
+    {
+        DateInputChangeEventDetail detail = eventObj["Detail"];
+        Model!.Returning = detail.Value.AddDays(1);
+    }
+
+    private async Task GetFlights()
+    {
+        string? routeId = Routes.Where(r => r.DepartureCity == Model!.DirectionFrom
+                                && r.ArrivalCity == Model!.DirectionTo)
+                                .Select(r => r.Id).SingleOrDefault();
+
+        var requestFlights = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://localhost:7123/api/flights?routeId={routeId}")
+            };
+
+        using (var response = await client.SendAsync(requestFlights))
+        {
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            if (body != null)
+                Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
+        }
+    }
+
+    private void OpenBookingForm(Flight? flight)
+    {
+        currentFlight = flight;
+        openedBookingForm = !openedBookingForm;
+    }
 }
-
-
