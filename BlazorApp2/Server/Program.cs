@@ -1,10 +1,18 @@
-using Microsoft.AspNetCore.ResponseCompression;
+using BlazorApp2.Server.Services;
+using BlazorApp2.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.Configure<AirportDatabaseSettings>(
+    builder.Configuration.GetSection("AirportDatabase"));
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<RoutesService>();
+builder.Services.AddSingleton<FlightsService>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(
+        options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 builder.Services.AddRazorPages();
 
 var app = builder.Build();

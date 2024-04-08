@@ -1,0 +1,127 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using Smart.Blazor;
+@using BlazorApp2.Shared;
+@using Newtonsoft.Json;
+@using BlazorApp2.Client.Components;
+@inject HttpClient client;
+
+
+<style>
+	.basic-input {
+		width: 100%;
+	}
+
+		.basic-input + .basic-input {
+			margin-top: 10px;
+		}
+
+	.options-container {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.container {
+		display: flex;
+		padding: 5px;
+	}
+
+	.info-text {
+		margin-bottom: 5px;
+		margin-top: 3px;
+	}
+</style>
+
+<div class="booking-container">
+	<h3>Бронирование рейса @Flight?.FlightNumber (@Flight?.Price руб.)</h3>
+	<p class="info-text">
+		Пожалуйста, введите данные латинскими буквами
+	</p>
+	
+	<div class="container">
+		<InputText 
+			@bind-Value= "Model!.LastName"
+			Style="margin: 10px;" 
+			class="basic-input" 
+			Placeholder="Фамилия" />
+		<InputText 
+			@bind-Value="Model!.FirstName" 
+			Style="margin: 10px;" 
+			class="basic-input" 
+			Placeholder="Имя" />
+		<InputText 
+			@bind-Value="Model!.Patronymic"
+			Style="margin: 10px;"
+			class="basic-input"
+			Placeholder="Отчество" />
+	</div>
+	<div class="container">
+		<div class="options-container">
+		<RadioButton 
+			Name="sexs" OnCheckValue="OnRadioButtonCheckValueM"
+		>Мужской</RadioButton>
+		<RadioButton 
+			Name="sexs" OnCheckValue="OnRadioButtonCheckValueF"
+		>Женский</RadioButton>
+		</div>
+	</div>
+	<p class="info-text">Информация о паспорте</p>
+	<div class="container">
+	<DateInput @bind-Value="Model!.DateOfIssue" Style=" margin: 10px;" Class="basic-input" />
+	<Input 
+			@bind-Value="Model!.DocumentSeriesAndNumber" class=" basic-input" Placeholder="Серия и номер" />
+	</div>
+	<p class="info-text">Контактные данные для заказа</p>
+	<div class="container">
+			<InputText 
+				@bind-Value="Model!.Email" 
+				Style="margin: 10px;" class="basic-input" Placeholder="Почта" />
+			<InputText 
+				@bind-Value="Model!.PhoneNumber"
+				   Style="margin: 10px;" class="basic-input" Placeholder="Номер телефона" />
+	</div>
+	
+	<Button style="display: flex; justify-content: flex-end;"
+			Class="primary outlined small" OnClick="@BookFlights">
+		Забронировать
+	</Button>
+	
+</div>
+
+<div>
+	<p>Sex: @Model!.Sex</p>
+	<p>First name: @Model!.FirstName</p>
+	<p>Last name: @Model!.LastName</p>
+	<p>Patronymic: @Model!.Patronymic</p>
+	<p>Date of issue: @Model!.DateOfIssue</p>
+	<p>Document number: @Model!.DocumentSeriesAndNumber</p>
+	<p>Email: @Model!.Email</p>
+	<p>Phone number: @Model!.PhoneNumber</p>
+
+</div>
+
+
+@code {
+	[Parameter]
+	public Flight? Flight { get; set; }
+	
+	public Passenger? Model { get; set; } = new();
+
+	// // protected override async Task OnInitializedAsync() => Model ??= new();
+
+    private void OnRadioButtonCheckValueM(Event ev) => Model!.Sex = "Male";
+    private void OnRadioButtonCheckValueF(Event ev) => Model!.Sex = "Female";
+
+ //    private void Submit()
+	// {
+	// //Logger.LogInformation("Id = {Id}", Model?.Id);
+	// }
+
+	private async Task BookFlights()
+	{
+		
+
+		
+	}
+}
