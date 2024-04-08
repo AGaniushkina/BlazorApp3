@@ -130,13 +130,13 @@
             <div class="container">
                     <DropDownList 
                         style="margin: 10px;"
-                        DataSource="@directions"
+                        DataSource="@departureCities"
                         Filterable="true" @bind-SelectedValues="@selectedItemsFrom" 
                         OnItemClick="OnItemClickFrom" 
                         Label="Город вылета"></DropDownList>
                     <DropDownList 
                         style="margin: 10px;"
-                        DataSource="@directions"
+                        DataSource="@arrivalCities"
                         Filterable="true" @bind-SelectedValues="@selectedItemsTo" 
                         OnItemClick="OnItemClickTo" 
                         Label="Город прилета"></DropDownList>
@@ -266,7 +266,7 @@
     };
 
     // For tests without mongodb
-    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
+    // string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
 
     List<string> departureCities = new List<string>();
     List<string> arrivalCities = new List<string>();
