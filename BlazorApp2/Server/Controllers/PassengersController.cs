@@ -19,8 +19,12 @@ public class PassengersController : ControllerBase
     public async Task<List<Passenger>> Get() =>
         await _passengersService.GetAsync();
 
-    [HttpPost]
-    public async Task Post(Passenger newPassenger)
+	[HttpGet]
+	public async Task<Passenger?> GetById([FromQuery] string? id) =>
+	   await _passengersService.GetAsync(id);
+
+	[HttpPost]
+    public async Task Post([FromBody] Passenger newPassenger)
     {
         if (newPassenger is null)
         {
@@ -28,7 +32,7 @@ public class PassengersController : ControllerBase
         }
         await _passengersService.CreateAsync(newPassenger);
     }
-    [HttpPost]
+    [HttpPut]
     public async Task Put(string id, Passenger updatedPassenger)
     {
         if (updatedPassenger is null)

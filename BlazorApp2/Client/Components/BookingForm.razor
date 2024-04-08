@@ -105,23 +105,58 @@
 @code {
 	[Parameter]
 	public Flight? Flight { get; set; }
-	
+
 	public Passenger? Model { get; set; } = new();
 
-	// // protected override async Task OnInitializedAsync() => Model ??= new();
+	private List<Passenger> Passengers = new List<Passenger>();
 
-    private void OnRadioButtonCheckValueM(Event ev) => Model!.Sex = "Male";
-    private void OnRadioButtonCheckValueF(Event ev) => Model!.Sex = "Female";
+	protected override async Task OnInitializedAsync()
+	{
+		var request = new HttpRequestMessage
+			{
+				Method = HttpMethod.Get,
+				RequestUri = new Uri("https://localhost:7123/api/passengers")
+			};
 
- //    private void Submit()
+		using (var response = await client.SendAsync(request))
+		{
+			response.EnsureSuccessStatusCode();
+			var body = await response.Content.ReadAsStringAsync();
+			if (body != null)
+				Passengers = JsonConvert.DeserializeObject<IEnumerable<Passenger>>(body).ToList();
+		}	
+	}
+
+	private void OnRadioButtonCheckValueM(Event ev) => Model!.Sex = "Male";
+	private void OnRadioButtonCheckValueF(Event ev) => Model!.Sex = "Female";
+
+	//    private void Submit()
 	// {
 	// //Logger.LogInformation("Id = {Id}", Model?.Id);
 	// }
 
 	private async Task BookFlights()
 	{
-		
+		string? flightId = Flight.Id;
 
-		
+		string? passengerId = Passengers.Where(r => r.Email == Model!.Email
+								&& r.DocumentSeriesAndNumber == Model!.DocumentSeriesAndNumber)
+								.Select(r => r.Id).SingleOrDefault();
+
+		var requestPassenger = new HttpRequestMessage
+			{
+				Method = HttpMethod.Get,
+				RequestUri = new Uri($"https://localhost:7123/api/passengers?id={passengerId}")
+			};
+
+		using (var response = await client.SendAsync(requestPassenger))
+		{
+			response.EnsureSuccessStatusCode();
+			var body = await response.Content.ReadAsStringAsync();
+			if (body != null)
+				;
+		}
+
+
 	}
 }
