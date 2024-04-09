@@ -3,107 +3,122 @@
 @using Smart.Blazor;
 
 <h1>Purchase</h1>
-<div class="form-main-menu page-form-main-menu">
-    <ul class="ul-form-main-menu">
-        <li class="li-form-main-menu" role="tab">Purchase</li>
-        <li class="li-form-main-menu" role="tab">My booking</li>
 
-    </ul>
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using BlazorApp2.Shared;
+@using Newtonsoft.Json;
+@using BlazorApp2.Client.Components;
+@inject HttpClient client;
 
-<EditForm Model="@Model" OnValidSubmit="@Submit">
-    <DataAnnotationsValidator />
-    <ValidationSummary /> 
- <div>
-     <p>
-        From:<br />
 
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsFrom" OnItemClick="OnItemClickFrom"></DropDownList>      
-    </p>
-    <p>
-        To:<br />
-                <DropDownList DataSource="@directions" Filterable="true" @bind-SelectedValues="@selectedItemsTo" OnItemClick="OnItemClickTo"></DropDownList> 
-    </p>
-    <p>
-        Departing:<br />
-        <InputDate @bind-Value="Model!.Departing" />
-    </p>
-    <p>
-        Returning:<br />
-        <InputDate @bind-Value="Model!.Returning" />
-    </p>
-    <p>
-        Passengers Count:<br />
-        <InputNumber @bind-Value="Model!.PassengersCount" />
-    </p>
-   
- </div>
 
-    <button type="submit">Submit</button>
-</EditForm>
+<style>
+	.basic-input {
+		width: 100%;
+	}
 
-<hr />
+		.basic-input + .basic-input {
+			margin-top: 10px;
+		}
+
+	.options-container {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.container {
+		display: flex;
+		padding: 5px;
+	}
+
+	.info-text {
+		margin-bottom: 5px;
+		margin-top: 3px;
+	}
+</style>
+
+<div class="booking-container">
+	
+	<p class="info-text">
+		Пожалуйста, введите данные латинскими буквами
+	</p>
+
+	<div class="container">
+		<InputText @bind-Value="Model!.LastName"
+				   Style="margin: 10px;"
+				   class="basic-input"
+				   Placeholder="Фамилия" />
+		<InputText @bind-Value="Model!.FirstName"
+				   Style="margin: 10px;"
+				   class="basic-input"
+				   Placeholder="Имя" />
+		<InputText @bind-Value="Model!.Patronymic"
+				   Style="margin: 10px;"
+				   class="basic-input"
+				   Placeholder="Отчество" />
+	</div>
+	<div class="container">
+		<div class="options-container">
+			<RadioButton Name="sexs" OnCheckValue="OnRadioButtonCheckValueM">Мужской</RadioButton>
+			<RadioButton Name="sexs" OnCheckValue="OnRadioButtonCheckValueF">Женский</RadioButton>
+		</div>
+	</div>
+	<p class="info-text">Информация о паспорте</p>
+	<div class="container">
+		<DateInput @bind-Value="Model!.DateOfIssue" Style=" margin: 10px;" Class="basic-input" />
+		<Input @bind-Value="Model!.DocumentSeriesAndNumber" class=" basic-input" Placeholder="Серия и номер" />
+	</div>
+	<p class="info-text">Контактные данные для заказа</p>
+	<div class="container">
+		<InputText @bind-Value="Model!.Email"
+				   Style="margin: 10px;" class="basic-input" Placeholder="Почта" />
+		<InputText @bind-Value="Model!.PhoneNumber"
+				   Style="margin: 10px;" class="basic-input" Placeholder="Номер телефона" />
+	</div>
+
+	<Button style="display: flex; justify-content: flex-end;"
+			Class="primary outlined small" OnClick="@PostPassenger">
+		Забронировать
+	</Button>
+
+</div>
+
 <div>
-    <p>From: @Model!.DirectionFrom</p>
-    <p>To: @Model!.DirectionTo</p>
-    <p>Departing: @Model!.Departing</p>
-    <p>Returning: @Model!.Returning</p>
-    <p>Passengers Count: @Model!.PassengersCount</p>
+	<p>Sex: @Model!.Sex</p>
+	<p>First name: @Model!.FirstName</p>
+	<p>Last name: @Model!.LastName</p>
+	<p>Patronymic: @Model!.Patronymic</p>
+	<p>Date of issue: @Model!.DateOfIssue</p>
+	<p>Document number: @Model!.DocumentSeriesAndNumber</p>
+	<p>Email: @Model!.Email</p>
+	<p>Phone number: @Model!.PhoneNumber</p>
+
 </div>
-</div>
+
 @code {
-    public Flight2? Model { get; set; }
+	public Passenger? Model { get; set; }
 
-    protected override void OnInitialized() => Model ??= new();
+	protected override void OnInitialized() => Model ??= new();
 
-    private void Submit()
-    {
-        //Logger.LogInformation("Id = {Id}", Model?.Id);
-    }
+	private void Submit()
+	{
+		//Logger.LogInformation("Id = {Id}", Model?.Id);
+	}
 
-    //public class Starship
-    //{
-    //    [Required]
-    //    [StringLength(10, ErrorMessage = "Id is too long.")]
-    //    public string? Id { get; set; }
-    //}
-    public class Flight2
-    {
-        [Required]
-        [StringLength(100, ErrorMessage = "String is too long.")]
-        public string? DirectionFrom { get; set; } = "";
-        public string? DirectionTo { get; set; } = "";
-        public DateTime Departing { get; set; } = DateTime.Now;
-        public DateTime Returning { get; set; } = DateTime.Now.AddHours(24);
-        public int PassengersCount { get; set; } = 1;
+	private void OnRadioButtonCheckValueM(Event ev) => Model!.Sex = "Male";
+	private void OnRadioButtonCheckValueF(Event ev) => Model!.Sex = "Female";
 
-    }
+	private async Task PostPassenger()
+	{
+		var request = new HttpRequestMessage
+			{
+				Method = HttpMethod.Post,
+				RequestUri = new Uri("https://localhost:7123/api/passengers/" )
+			};
 
-    //in a real case, the model is usually in a separate file
-    // //the model type and value field type must be provided to the dropdpownlist
-    // public class MyDdlModel
-    // {
-    //     public int MyValueField { get; set; }
-    //     public string MyTextField { get; set; }
-    // }
+		await client.SendAsync(request);
 
-    // int selectedValue { get; set; } = 1;
+	}
 
-    // IEnumerable<MyDdlModel> myDdlData = Enumerable.Range(1, 20).Select(x => new MyDdlModel { MyTextField = "item " + x, MyValueField = x });
-
-    string[] directions = new string[] { "Moscow, Russia", "Saratov, Russia", "Samara, Russia" };
-
-    string[] selectedItemsFrom = new string[] { };
-    string[] selectedItemsTo = new string[] { };
-
-    private void OnItemClickFrom(Event ev)
-    {
-        DropDownListItemClickEventDetail detail = ev["Detail"];
-        Model!.DirectionFrom = selectedItemsFrom[0];
-    }
-
-    private void OnItemClickTo(Event ev)
-    {
-        DropDownListItemClickEventDetail detail = ev["Detail"];
-        Model!.DirectionTo = selectedItemsTo[0];
-    }
 }

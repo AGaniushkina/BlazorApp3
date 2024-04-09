@@ -8,32 +8,6 @@
 @inject HttpClient client;
 
 <style>
-    smart-carousel {
-        width: 100%;
-        height: 300px;
-    }
-
-    #carouselWithCaptions .smart-carousel-item-label {
-        padding: 3px;
-        background-color: rgba(0, 0, 0, 0.3);
-        color: white;
-    }
-
-    .card-body {
-        margin-bottom: 100px;
-    }
-
-    .flights-card {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        position: absolute;
-        top: 95%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-
     .container {
         display: flex;
         padding: 5px;
@@ -113,13 +87,13 @@
     }
 </style>
 
-<PageTitle>My Booking</PageTitle>
+<PageTitle>Мои рейсы</PageTitle>
 
-<h1>My Booking</h1>
+<h1>Мои рейсы</h1>
 <div style="position: relative;">
-    <div class="card-body">
+@*     <div class="card-body">
         <Carousel Class="slide" AutoPlay DataSource="dataSource" HideIndicators Interval="8000" Loop SlideShow />
-     </div>
+     </div> *@
     <div class="flights-card">
         <EditForm Model="@Model">
             <p>
@@ -137,23 +111,69 @@
         </EditForm>
     </div>
     
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Вылет</th>
+                    <th>Прилет</th>
+                    <th>Рейс</th>
+                    <th>Самолет</th>
+                    <th>Цена</th>
+                    <th style="width: 150px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+@*                 @foreach (var item in Flights)
+                {
+                    <tr>
+                        <td>@item.DepartureDate.ToString("HH:mm")</td>
+                        <td>@item.ArrivalDate.ToString("HH:mm")</td>
+                        <td>@item.FlightNumber</td>
+                        <td>@item.Plane</td>
+                        <td>@item.Price ₽</td>
+                        <td>
+                            <div class="actions-container">
+                                <Button id="openBookingFormButton"
+                                        Class="primary outlined small"
+                                        OnClick="() => OpenBookingForm(item)">
+                                    Выбрать рейс
+                                </Button>
+                            </div>
+                        </td>
+                    </tr>
+                } *@
+            </tbody>
+        </table>
 </div>
 
-@code {
+ @code {
 
     public PassengerInfo? Model { get; set; }
     public List<Passenger> Passengers { get; set; } = new List<Passenger>();
+    public List<PassengerFlight> PassengerFlights { get; set; } = new List<PassengerFlight>();
 
-    //protected override void OnInitialized() => Model ??= new();
+    protected override void OnInitialized() => Model ??= new();
 
-    protected override async Task OnInitializedAsync()
+    public class PassengerInfo
     {
-        Model ??= new();
+        public string? login { get; set; } = "Email";
+        public string? Id { get; set; } = "Document series and number";
+    }
 
+    // List<Dictionary<string, string>> dataSource = new List<Dictionary<string, string>>()
+    // {
+    //     // TODO: Скачать изображения и поместитьв проект (использовать относительный путь)
+    //     new Dictionary<string, string>() { { "image", "./CarouselImage/plane-passing-by-sun-cloudy-day.jpg" } },
+    //     new Dictionary<string, string>() { { "image", "./CarouselImage/wing-airplane-blue-sky-twilight-sunset.jpg" } },
+    //     new Dictionary<string, string>() { { "image", "./CarouselImage/young-female-traveler-enjoying-rural-surroundings.jpg" } }
+    // };
+
+    private async Task GetPassengers()
+    {
         var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri("https://localhost:7123/api/passengers")
+                RequestUri = new Uri("https://localhost:7123/api/passengers/all")
             };
 
         using (var response = await client.SendAsync(request))
@@ -165,44 +185,25 @@
         }
     }
 
-    public class PassengerInfo
-    {
-        public string? login { get; set; } = "Email";
-        public string? Id { get; set; } = "Document series and number";
-    }
-
-    List<Dictionary<string, string>> dataSource = new List<Dictionary<string, string>>()
-    {
-        // TODO: Скачать изображения и поместитьв проект (использовать относительный путь)
-        new Dictionary<string, string>() { { "image", "./CarouselImage/plane-passing-by-sun-cloudy-day.jpg" } },
-        new Dictionary<string, string>() { { "image", "./CarouselImage/wing-airplane-blue-sky-twilight-sunset.jpg" } },
-        new Dictionary<string, string>() { { "image", "./CarouselImage/young-female-traveler-enjoying-rural-surroundings.jpg" } }
-    };
-
     private async Task GetFlights()
     {
-    //     string? passengerId = Passengers.Where(r => r.DocumentSeriesAndNumber == Model!.Id
-    //                             && r.Email == Model!.login)
-    //                             .Select(r => r.Id).SingleOrDefault();
+        await GetPassengers();
+        string? passengerId = Passengers.Where(r => r.DocumentSeriesAndNumber == Model!.Id
+                                && r.Email == Model!.login)
+                                .Select(r => r.Id).SingleOrDefault();
 
-    //     var requestPassenger = new HttpRequestMessage
-    //         {
-    //             Method = HttpMethod.Get,
-    //             RequestUri = new Uri($"https://localhost:7123/api/passengers?passengerId={passengerId}")
-    //         };
+        var requestPassengers = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri($"https://localhost:7123/api/passengerflights?passengerId={passengerId}")
+            };
+        
 
-    //     var requestFlights = new HttpRequestMessage
-    //         {
-    //             Method = HttpMethod.Get,
-    //             RequestUri = new Uri($"https://localhost:7123/api/passengers?routeId")
-    //         };
-
-    //     using (var response = await client.SendAsync(requestFlights))
-    //     {
-    //         response.EnsureSuccessStatusCode();
-    //         var body = await response.Content.ReadAsStringAsync();
-    //         if (body != null)
-    //             Passengers = JsonConvert.DeserializeObject<IEnumerable<Passenger>>(body).ToList();
-    //     }
+        using (var response = await client.SendAsync(requestPassengers))
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            if (body != null)
+                PassengerFlights = JsonConvert.DeserializeObject<IEnumerable<PassengerFlight>>(body).ToList();
+        }
     }
 }

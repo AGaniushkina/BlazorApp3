@@ -216,7 +216,7 @@
 @code {
     public Flight2? Model { get; set; }
     public List<Route> Routes { get; set; } = new List<Route>();
-    private List<Flight> Flights = new List<Flight>();
+    private List<Flight> Flights  { get; set; } = new List<Flight>();
     private bool openedBookingForm = false;
     private Flight? currentFlight { get; set; }
 

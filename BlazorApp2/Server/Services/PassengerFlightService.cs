@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using PassengerFlight = BlazorApp2.Shared.PassengerFlight;
 
 namespace BlazorApp2.Server.Services
 {

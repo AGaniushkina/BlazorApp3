@@ -89,18 +89,6 @@
 	
 </div>
 
-<div>
-	<p>Sex: @Model!.Sex</p>
-	<p>First name: @Model!.FirstName</p>
-	<p>Last name: @Model!.LastName</p>
-	<p>Patronymic: @Model!.Patronymic</p>
-	<p>Date of issue: @Model!.DateOfIssue</p>
-	<p>Document number: @Model!.DocumentSeriesAndNumber</p>
-	<p>Email: @Model!.Email</p>
-	<p>Phone number: @Model!.PhoneNumber</p>
-
-</div>
-
 
 @code {
 	[Parameter]
@@ -109,6 +97,8 @@
 	public Passenger? Model { get; set; } = new();
 
 	private List<Passenger> Passengers = new List<Passenger>();
+
+	private List<PassengerFlight> Flights = new List<PassengerFlight>();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -137,7 +127,21 @@
 
 	private async Task BookFlights()
 	{
-		string? flightId = Flight.Id;
+		var request = new HttpRequestMessage
+			{
+				Method = HttpMethod.Get,
+				RequestUri = new Uri("https://localhost:7123/api/passengers")
+			};
+
+		using (var response = await client.SendAsync(request))
+		{
+			response.EnsureSuccessStatusCode();
+			var body = await response.Content.ReadAsStringAsync();
+			if (body != null)
+				Passengers = JsonConvert.DeserializeObject<IEnumerable<Passenger>>(body).ToList();
+		}	
+
+		string? flightId = Flight?.Id;
 
 		string? passengerId = Passengers.Where(r => r.Email == Model!.Email
 								&& r.DocumentSeriesAndNumber == Model!.DocumentSeriesAndNumber)
@@ -146,7 +150,7 @@
 		var requestPassenger = new HttpRequestMessage
 			{
 				Method = HttpMethod.Get,
-				RequestUri = new Uri($"https://localhost:7123/api/passengers?id={passengerId}")
+				RequestUri = new Uri($"https://localhost:7123/api/passengerflights?passengerId={passengerId}")
 			};
 
 		using (var response = await client.SendAsync(requestPassenger))
@@ -154,7 +158,7 @@
 			response.EnsureSuccessStatusCode();
 			var body = await response.Content.ReadAsStringAsync();
 			if (body != null)
-				;
+				Flights = JsonConvert.DeserializeObject<IEnumerable<PassengerFlight>>(body).ToList(); ;
 		}
 
 

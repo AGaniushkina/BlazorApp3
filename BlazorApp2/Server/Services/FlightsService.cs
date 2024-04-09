@@ -1,6 +1,5 @@
 ﻿using BlazorApp2.Shared;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace BlazorApp2.Server.Services;
@@ -24,7 +23,6 @@ public class FlightsService
 
     public async Task<List<Flight>> GetAsync()
     {
-        // var flights = await _flightsCollection.Find(_ => true).ToListAsync();
         var flights = await _flightsCollection.Aggregate()
             .Lookup("Routes", "RouteId", "_id", "Route")
             .Unwind("Route")
