@@ -106,7 +106,7 @@
                 <InputText @bind-Value="Model!.Id"/>
             </p>
             <div style="display: flex; justify-content: flex-end;">
-                <Button Class="primary" OnClick="@GetFlights">Найти</Button>
+                <Button Class="primary" OnClick="@GetPassengerFlights">Найти</Button>
             </div>
         </EditForm>
     </div>
@@ -119,37 +119,29 @@
                     <th>Рейс</th>
                     <th>Самолет</th>
                     <th>Цена</th>
-                    <th style="width: 150px;"></th>
                 </tr>
             </thead>
             <tbody>
-@*                 @foreach (var item in Flights)
+            @foreach (var item in PassengerFlights)
                 {
                     <tr>
-                        <td>@item.DepartureDate.ToString("HH:mm")</td>
-                        <td>@item.ArrivalDate.ToString("HH:mm")</td>
-                        <td>@item.FlightNumber</td>
-                        <td>@item.Plane</td>
-                        <td>@item.Price ₽</td>
-                        <td>
-                            <div class="actions-container">
-                                <Button id="openBookingFormButton"
-                                        Class="primary outlined small"
-                                        OnClick="() => OpenBookingForm(item)">
-                                    Выбрать рейс
-                                </Button>
-                            </div>
-                        </td>
+                    <td>@item.flight.DepartureDate.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.flight.ArrivalDate.ToString("dd MMM yyyy HH:mm")</td>
+                        <td>@item.flight.FlightNumber</td>
+                        <td>@item.flight.Plane</td>
+                        <td>@item.flight.Price ₽</td>
+                        
                     </tr>
-                } *@
+                }
             </tbody>
         </table>
 </div>
 
- @code {
+@code {
 
     public PassengerInfo? Model { get; set; }
     public List<Passenger> Passengers { get; set; } = new List<Passenger>();
+    public List<Flight> FlightsInfo { get; set; } = new List<Flight>();
     public List<PassengerFlight> PassengerFlights { get; set; } = new List<PassengerFlight>();
 
     protected override void OnInitialized() => Model ??= new();
@@ -184,8 +176,24 @@
                 Passengers = JsonConvert.DeserializeObject<IEnumerable<Passenger>>(body).ToList();
         }
     }
+    // private async Task GetFlightsInfo()
+    // {
+    //     var request = new HttpRequestMessage
+    //         {
+    //             Method = HttpMethod.Get,
+    //             RequestUri = new Uri("https://localhost:7123/api/flights/all")
+    //         };
 
-    private async Task GetFlights()
+    //     using (var response = await client.SendAsync(request))
+    //     {
+    //         response.EnsureSuccessStatusCode();
+    //         var body = await response.Content.ReadAsStringAsync();
+    //         if (body != null)
+    //             FlightsInfo = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
+    //     }
+    // }
+
+    private async Task GetPassengerFlights()
     {
         await GetPassengers();
         string? passengerId = Passengers.Where(r => r.DocumentSeriesAndNumber == Model!.Id
@@ -197,7 +205,7 @@
                 Method = HttpMethod.Get,
                 RequestUri = new Uri($"https://localhost:7123/api/passengerflights?passengerId={passengerId}")
             };
-        
+
 
         using (var response = await client.SendAsync(requestPassengers))
         {

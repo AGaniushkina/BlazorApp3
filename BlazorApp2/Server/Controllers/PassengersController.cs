@@ -22,7 +22,7 @@ public class PassengersController : ControllerBase
         await _passengersService.GetAsync();
 
 	[HttpPost]
-	public async Task Post([FromBody] Passenger newPassenger)
+	public async Task Post([FromQuery] Passenger newPassenger)
 	{
 		if (newPassenger is null)
 		{

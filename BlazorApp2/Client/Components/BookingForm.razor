@@ -98,7 +98,7 @@
 
 	private List<Passenger> Passengers = new List<Passenger>();
 
-	private List<PassengerFlight> Flights = new List<PassengerFlight>();
+	private PassengerFlight? Flights { get; set; } = new();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -130,7 +130,7 @@
 		var request = new HttpRequestMessage
 			{
 				Method = HttpMethod.Get,
-				RequestUri = new Uri("https://localhost:7123/api/passengers")
+				RequestUri = new Uri("https://localhost:7123/api/passengers/all")
 			};
 
 		using (var response = await client.SendAsync(request))
@@ -147,18 +147,22 @@
 								&& r.DocumentSeriesAndNumber == Model!.DocumentSeriesAndNumber)
 								.Select(r => r.Id).SingleOrDefault();
 
+		if (passengerId == null)
+		{
+
+		}
+
+		Flights = new PassengerFlight(passengerId, flightId, Flight);
+
 		var requestPassenger = new HttpRequestMessage
 			{
-				Method = HttpMethod.Get,
-				RequestUri = new Uri($"https://localhost:7123/api/passengerflights?passengerId={passengerId}")
+				Method = HttpMethod.Post,
+				RequestUri = new Uri($"https://localhost:7123/api/passengerflights?newPassengerFlight=Flights")
 			};
-
 		using (var response = await client.SendAsync(requestPassenger))
 		{
 			response.EnsureSuccessStatusCode();
-			var body = await response.Content.ReadAsStringAsync();
-			if (body != null)
-				Flights = JsonConvert.DeserializeObject<IEnumerable<PassengerFlight>>(body).ToList(); ;
+
 		}
 
 

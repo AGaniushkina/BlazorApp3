@@ -45,4 +45,6 @@ public class FlightsService
 
     public async Task<List<Flight>> GetByCityAsync(string? routeId) =>
         await _flightsCollection.Find(x => x.RouteId == routeId).ToListAsync();
+    public async Task<List<Flight>> GetById(string? id) =>
+        await _flightsCollection.Find(x => x.Id == id).ToListAsync();
 }

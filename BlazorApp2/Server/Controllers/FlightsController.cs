@@ -26,6 +26,6 @@ public class FlightsController : ControllerBase
 
     [HttpGet]
     [Route("flightsId")]
-    public async Task<Flight> GetById([FromQuery] string id) =>
+    public async Task<Flight?> GetById([FromQuery] string id) =>
         await _flightsService.GetAsync(id);
 }

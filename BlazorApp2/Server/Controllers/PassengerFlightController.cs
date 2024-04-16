@@ -23,5 +23,15 @@ public class PassengerFlightController : ControllerBase
 	[HttpGet]
 	public async Task<List<PassengerFlight>> GetByPassengerId([FromQuery] string? passengerId) =>
 		await _passengerFlightService.GetByPassengerIdAsync(passengerId);
+
+	[HttpPost]
+	public async Task Post([FromQuery] PassengerFlight newPassengerFlight)
+	{
+		if (newPassengerFlight is null)
+		{
+			throw new ArgumentNullException(nameof(newPassengerFlight));
+		}
+		await _passengerFlightService.CreateAsync(newPassengerFlight);
+	}
 }
 
