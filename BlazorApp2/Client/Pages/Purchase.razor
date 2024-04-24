@@ -145,11 +145,11 @@
                 <DateInput style="margin: 10px;"
                     OnChange=@OnChangeDepartingDate
                     Locale="ru"
-                    Placeholder="Туда"></DateInput>
-                <DateInput style="margin: 10px;"
+                    Placeholder="Дата вылета"></DateInput>
+@*                 <DateInput style="margin: 10px;"
                     OnChange=@OnChangeReturningDate
                     Locale="ru"
-                    Placeholder="Обратно"></DateInput>
+                    Placeholder="Обратно"></DateInput> *@
             </div>
         </div>
             <div style="display: flex; justify-content: flex-end;">
@@ -202,16 +202,6 @@
         <BookingForm Flight="currentFlight"></BookingForm>
 </Window>
 }
-
-@* <hr />
-    <div>
-        <p>From: @Model!.DirectionFrom</p>
-        <p>To: @Model!.DirectionTo</p>
-        <p>Departing: @Model!.Departing</p>
-        <p>Returning: @Model!.Returning</p>
-        <p>Passengers Count: @Model!.PassengersCount</p>
-    </div>
-<hr /> *@
 
 @code {
     public Flight2? Model { get; set; }
@@ -279,10 +269,9 @@
         DropDownListItemClickEventDetail detail = ev["Detail"];
         Model!.DirectionFrom = selectedItemsFrom[0];
 
-        arrivalCities = Routes
-                            .Where(r => r.DepartureCity == selectedItemsFrom[0])
-                            .Select(r => r.ArrivalCity)
-                            .ToList();
+        arrivalCities = Routes.Where(r => r.DepartureCity == selectedItemsFrom[0])
+            .Select(r => r.ArrivalCity)
+            .ToList();
     }
 
     private void OnItemClickTo(Event ev)
@@ -308,11 +297,11 @@
         string? routeId = Routes.Where(r => r.DepartureCity == Model!.DirectionFrom
                                 && r.ArrivalCity == Model!.DirectionTo)
                                 .Select(r => r.Id).SingleOrDefault();
-
+        var departureDate = DateOnly.FromDateTime(Model!.Departing).ToString("yyyy-MM-dd");
         var requestFlights = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"https://localhost:7123/api/flights?routeId={routeId}")
+                RequestUri = new Uri($"https://localhost:7123/api/flights/{routeId}?date={departureDate}")
             };
 
         using (var response = await client.SendAsync(requestFlights))

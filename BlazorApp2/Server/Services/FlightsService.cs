@@ -24,7 +24,6 @@ public class FlightsService
 
     public async Task<List<Flight>> GetAsync()
     {
-        // var flights = await _flightsCollection.Find(_ => true).ToListAsync();
         var flights = await _flightsCollection.Aggregate()
             .Lookup("Routes", "RouteId", "_id", "Route")
             .Unwind("Route")
@@ -45,6 +44,10 @@ public class FlightsService
     public async Task RemoveAsync(string id) =>
         await _flightsCollection.DeleteOneAsync(x => x.Id == id);
 
-    public async Task<List<Flight>> GetByCityAsync(string? routeId) =>
-        await _flightsCollection.Find(x=>x.RouteId == routeId).ToListAsync();
+    public async Task<List<Flight>> GetByCityAsync(string? routeId, DateOnly date) {
+        var startDay = date.ToDateTime(new TimeOnly(0, 0));
+        var endDay = date.AddDays(1).ToDateTime(new TimeOnly(0, 0));
+        var flights = await _flightsCollection.Find(x => x.RouteId == routeId).ToListAsync();
+        return flights.Where(x => x.DepartureDate > startDay && x.DepartureDate < endDay).ToList();
+    }
 }

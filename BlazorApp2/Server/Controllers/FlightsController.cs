@@ -21,6 +21,7 @@ public class FlightsController : ControllerBase
         await _flightsService.GetAsync();
 
     [HttpGet]
-    public async Task<List<Flight>> GetByCity([FromQuery] string? routeId) =>
-        await _flightsService.GetByCityAsync(routeId);
+    [Route("{routeId}")]
+    public async Task<List<Flight>> GetByCity([FromRoute] string routeId, [FromQuery] DateOnly date) =>
+        await _flightsService.GetByCityAsync(routeId, date);
 }
