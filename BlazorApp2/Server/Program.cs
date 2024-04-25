@@ -13,6 +13,7 @@ builder.Services.Configure<AirportDatabaseSettings>(
 builder.Services.AddSingleton<RoutesService>();
 builder.Services.AddSingleton<FlightsService>();
 builder.Services.AddSingleton<PassengersService>();
+builder.Services.AddSingleton<PassengerFlightService>();
 
 // Add RabbitMq
 builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();

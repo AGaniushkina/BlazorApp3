@@ -34,7 +34,7 @@ public class RabbitMqService : IRabbitMqService
 		}
 	}
 
-	public void SendMessage(AddPassenger addPassenger)
+	public void SendMessage(BookingModel addPassenger)
 	{
 		var factory = new ConnectionFactory() { HostName = "localhost" };
 		using (var connection = factory.CreateConnection())

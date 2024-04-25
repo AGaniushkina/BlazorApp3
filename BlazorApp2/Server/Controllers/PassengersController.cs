@@ -19,15 +19,14 @@ public class PassengersController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Post([FromQuery] AddPassenger newPassenger)
+    public IActionResult Booking(BookingModel bookingModel)
     {
-        if (newPassenger == null)
+        if (bookingModel == null)
         {
-            throw new ArgumentNullException(nameof(newPassenger));
+            throw new ArgumentNullException(nameof(bookingModel));
         }
-		_mqService.SendMessage(newPassenger);
+		_mqService.SendMessage(bookingModel);
 		return Ok();
-		//await _passengersService.CreateAsync(newPassenger);
 	}
 
     [HttpPost]

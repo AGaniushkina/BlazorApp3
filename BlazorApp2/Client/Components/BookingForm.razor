@@ -94,7 +94,7 @@
 @code {
 	[Parameter]
 	public Flight? Flight { get; set; }
-	Passenger Passenger { get; set; } = new Passenger();
+	AddPassenger Passenger { get; set; } = new AddPassenger();
 	string message = "";
 
 	protected override void OnInitialized()
@@ -102,26 +102,9 @@
 		Passenger ??= new();
 	}
 
-	void Submit()
+	private async Task Submit()
 	{
-		message = $"Name: {Passenger?.LastName} Age: {Passenger?.DocumentSeriesAndNumber} gender: {Passenger?.Sex} dateOfIssue: {Passenger?.DateOfIssue}";
+		var bookingModel = new BookingModel { FlightId = Flight!.Id!, Passenger = Passenger };
+		using var response = await client.PostAsJsonAsync("https://localhost:7123/api/passengers", bookingModel);
 	}
-
-	// private async Task Book()
-	// {
-
-	// 	var requestFlights = new HttpRequestMessage
-	// 		{
-	// 			Method = HttpMethod.Post,
-	// 			RequestUri = new Uri($"https:localhost:7123/api/passengers")
-	// 		};
-
-	// 	using (var response = await client.SendAsync(requestFlights))
-	// 	{
-	// 		response.EnsureSuccessStatusCode();
-	// 		var body = await response.Content.ReadAsStringAsync();
-	// 		if (body != null)
-	// 			Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
-	// 	}
-	// }
 }

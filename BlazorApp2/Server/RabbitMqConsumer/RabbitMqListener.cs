@@ -13,14 +13,16 @@ public class RabbitMqListener : BackgroundService
 	private IConnection _connection;
 	private IModel _channel;
 	private readonly PassengersService _passengersService;
+	private readonly PassengerFlightService _passengerFlightService;
 
-	public RabbitMqListener(PassengersService passengersService)
+	public RabbitMqListener(PassengersService passengersService, PassengerFlightService passengerFlightService)
 	{
 		var factory = new ConnectionFactory { HostName = "localhost" };
 		_connection = factory.CreateConnection();
 		_channel = _connection.CreateModel();
 		_channel.QueueDeclare(queue: "MyQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
 		_passengersService = passengersService;
+		_passengerFlightService = passengerFlightService;
 	}
 
 	protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -33,8 +35,26 @@ public class RabbitMqListener : BackgroundService
 			var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 			try
 			{
-				AddPassenger addPassenger = JsonConvert.DeserializeObject<AddPassenger>(content)!;
-				await _passengersService.CreateAsync(addPassenger.ToPassenger());
+				BookingModel bookingModel = JsonConvert.DeserializeObject<BookingModel>(content)!;
+				var passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+				if (passengerId != null)
+				{
+					await _passengersService.UpdateAsync(passengerId, bookingModel.Passenger.ToPassenger());
+				}
+				else
+				{
+					await _passengersService.CreateAsync(bookingModel.Passenger.ToPassenger());
+					passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+				}
+				await _passengerFlightService.CreateAsync(
+					new PassengerFlight
+					{
+						PassengerId = passengerId!,
+						FlightId = bookingModel.FlightId!
+					});
+
+				//AddPassenger addPassenger = JsonConvert.DeserializeObject<AddPassenger>(content)!;
+				//await _passengersService.CreateAsync(addPassenger.ToPassenger());
 			}
 			catch (Exception ex)
 			{
@@ -45,6 +65,12 @@ public class RabbitMqListener : BackgroundService
 		_channel.BasicConsume("MyQueue", false, consumer);
 
 		return Task.CompletedTask;
+	}
+
+	private async Task<string?> GetPassengerId(string passport)
+	{
+		var passenger = await _passengersService.GetByPassportAsync(passport);
+		return passenger?.Id;
 	}
 
 	public override void Dispose()
