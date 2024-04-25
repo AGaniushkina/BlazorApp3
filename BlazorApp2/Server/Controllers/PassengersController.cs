@@ -1,4 +1,5 @@
-﻿using BlazorApp2.Server.Services;
+﻿using BlazorApp2.Server.RabbitMqProducer;
+using BlazorApp2.Server.Services;
 using BlazorApp2.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,19 +10,32 @@ namespace BlazorApp2.Server.Controllers;
 public class PassengersController : ControllerBase
 {
     private readonly PassengersService _passengersService;
+    private readonly IRabbitMqService _mqService;
 
-    public PassengersController(PassengersService passengersService)
+    public PassengersController(PassengersService passengersService, IRabbitMqService mqService)
     {
         _passengersService = passengersService;
+        _mqService = mqService;
     }
 
     [HttpPost]
-    public async Task Post([FromQuery] Passenger newPassenger)
+    public IActionResult Post([FromQuery] AddPassenger newPassenger)
     {
-        if (newPassenger is null)
+        if (newPassenger == null)
         {
             throw new ArgumentNullException(nameof(newPassenger));
         }
-        await _passengersService.CreateAsync(newPassenger);
-    }
+		_mqService.SendMessage(newPassenger);
+		return Ok();
+		//await _passengersService.CreateAsync(newPassenger);
+	}
+
+    [HttpPost]
+    [Route("{message}")]
+	public IActionResult SendMessage(string message)
+	{
+		_mqService.SendMessage(message);
+
+		return Ok("Сообщение отправлено");
+	}
 }

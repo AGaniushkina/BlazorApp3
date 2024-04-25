@@ -1,3 +1,5 @@
+using BlazorApp2.Server.RabbitMqConsumer;
+using BlazorApp2.Server.RabbitMqProducer;
 using BlazorApp2.Server.Services;
 using BlazorApp2.Shared;
 using Microsoft.OpenApi.Models;
@@ -11,6 +13,10 @@ builder.Services.Configure<AirportDatabaseSettings>(
 builder.Services.AddSingleton<RoutesService>();
 builder.Services.AddSingleton<FlightsService>();
 builder.Services.AddSingleton<PassengersService>();
+
+// Add RabbitMq
+builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
+builder.Services.AddHostedService<RabbitMqListener>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(

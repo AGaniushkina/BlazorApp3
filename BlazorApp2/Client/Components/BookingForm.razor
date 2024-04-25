@@ -36,34 +36,92 @@
 	<p class="info-text">
 		Пожалуйста, введите данные латинскими буквами
 	</p>
+	<EditForm Model="@Passenger" OnSubmit="Submit">
     <div class="container">
-        <Input Style="margin: 10px;" class="basic-input" Placeholder="Фамилия" />
-		<Input Style="margin: 10px;" class="basic-input" Placeholder="Имя" />
-		<Input class="basic-input" Placeholder="Отчество" />
+		<Input 
+			Style="margin: 10px;" 
+			class="basic-input" 
+			Placeholder="Фамилия" 
+			@bind-Value="Passenger.LastName" />
+		<Input 
+			Style="margin: 10px;" 
+			class="basic-input" 
+			Placeholder="Имя"
+			@bind-Value="Passenger.FirstName" />
+		<Input 
+			class="basic-input" 
+			Placeholder="Отчество"
+			@bind-Value="Passenger.Patronymic" />
     </div>
 	<div class="container">
 		<div class="options-container">
-			<RadioButton>Мужской</RadioButton>
-			<RadioButton>Женский</RadioButton>
+			<RadioButton OnChange="@(() => Passenger.Sex = GenderEnum.Male)">Мужской</RadioButton>
+			<RadioButton OnChange="@(() => Passenger.Sex = GenderEnum.Female)">Женский</RadioButton>
 		</div>
 	</div>
 	<p class="info-text">Информация о паспорте</p>
 	<div class="container">
-		<DateInput Style="margin: 10px;" Class="basic-input" />
-		<Input class="basic-input" Placeholder="Серия и номер" />
+			<DateInput 
+				Style="margin: 10px;" 
+				Class="basic-input" 
+				Locale="ru" 
+				@bind-Value="Passenger.DateOfIssue" />
+			<Input 
+				Class="basic-input" 
+				Placeholder="Серия и номер" 
+				@bind-Value="Passenger.DocumentSeriesAndNumber" />
 	</div>
 	<p class="info-text">Контактные данные для заказа</p>
 	<div class="container">
-		<Input Style="margin: 10px;" class="basic-input" Placeholder="Почта" />
-		<Input class="basic-input" Placeholder="Номер телефона" />
+		<Input 
+			Style="margin: 10px;" 
+			Class="basic-input" 
+			Placeholder="Почта"
+			@bind-Value="Passenger.Email" />
+		<Input 
+			Class="basic-input" 
+			Placeholder="Номер телефона"
+			@bind-Value="Passenger.PhoneNumber" />
 	</div>
-	<Button style="display: flex; justify-content: flex-end;"
-			Class="primary outlined small">
-		Забронировать
-	</Button>
+		<Button Style="display: flex; justify-content: flex-end;"
+				Class="primary outlined small" type="submit" @* OnClick="@Book" *@>
+				Забронировать
+		</Button>
+	</EditForm>
+	<h3>@message</h3>
 </div>
 
 @code {
 	[Parameter]
 	public Flight? Flight { get; set; }
+	Passenger Passenger { get; set; } = new Passenger();
+	string message = "";
+
+	protected override void OnInitialized()
+	{
+		Passenger ??= new();
+	}
+
+	void Submit()
+	{
+		message = $"Name: {Passenger?.LastName} Age: {Passenger?.DocumentSeriesAndNumber} gender: {Passenger?.Sex} dateOfIssue: {Passenger?.DateOfIssue}";
+	}
+
+	// private async Task Book()
+	// {
+
+	// 	var requestFlights = new HttpRequestMessage
+	// 		{
+	// 			Method = HttpMethod.Post,
+	// 			RequestUri = new Uri($"https:localhost:7123/api/passengers")
+	// 		};
+
+	// 	using (var response = await client.SendAsync(requestFlights))
+	// 	{
+	// 		response.EnsureSuccessStatusCode();
+	// 		var body = await response.Content.ReadAsStringAsync();
+	// 		if (body != null)
+	// 			Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body).ToList();
+	// 	}
+	// }
 }
