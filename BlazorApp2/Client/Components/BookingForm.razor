@@ -88,23 +88,17 @@
 				Забронировать
 		</Button>
 	</EditForm>
-	<h3>@message</h3>
 </div>
 
 @code {
 	[Parameter]
 	public Flight? Flight { get; set; }
-	AddPassenger Passenger { get; set; } = new AddPassenger();
-	string message = "";
-
-	protected override void OnInitialized()
-	{
-		Passenger ??= new();
-	}
+	public AddPassenger Passenger { get; set; } = new AddPassenger();
 
 	private async Task Submit()
 	{
 		var bookingModel = new BookingModel { FlightId = Flight!.Id!, Passenger = Passenger };
 		using var response = await client.PostAsJsonAsync("https://localhost:7123/api/passengers", bookingModel);
+		Passenger = new AddPassenger();
 	}
 }

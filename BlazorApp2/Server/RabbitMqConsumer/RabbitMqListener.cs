@@ -33,33 +33,25 @@ public class RabbitMqListener : BackgroundService
 		consumer.Received += async (ch, ea) =>
 		{
 			var content = Encoding.UTF8.GetString(ea.Body.ToArray());
-			try
-			{
-				BookingModel bookingModel = JsonConvert.DeserializeObject<BookingModel>(content)!;
-				var passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
-				if (passengerId != null)
-				{
-					await _passengersService.UpdateAsync(passengerId, bookingModel.Passenger.ToPassenger());
-				}
-				else
-				{
-					await _passengersService.CreateAsync(bookingModel.Passenger.ToPassenger());
-					passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
-				}
-				await _passengerFlightService.CreateAsync(
-					new PassengerFlight
-					{
-						PassengerId = passengerId!,
-						FlightId = bookingModel.FlightId!
-					});
 
-				//AddPassenger addPassenger = JsonConvert.DeserializeObject<AddPassenger>(content)!;
-				//await _passengersService.CreateAsync(addPassenger.ToPassenger());
-			}
-			catch (Exception ex)
+			BookingModel bookingModel = JsonConvert.DeserializeObject<BookingModel>(content)!;
+			var passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+			if (passengerId != null)
 			{
-				_channel.BasicAck(ea.DeliveryTag, false);
+				await _passengersService.UpdateAsync(passengerId, bookingModel.Passenger.ToPassenger(passengerId));
 			}
+			else
+			{
+				await _passengersService.CreateAsync(bookingModel.Passenger.ToPassenger());
+				passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+			}
+			await _passengerFlightService.CreateAsync(
+				new PassengerFlight
+				{
+					PassengerId = passengerId!,
+					FlightId = bookingModel.FlightId!
+				});
+
 			_channel.BasicAck(ea.DeliveryTag, false);
 		};
 		_channel.BasicConsume("MyQueue", false, consumer);

@@ -4,9 +4,10 @@ namespace BlazorApp2.Server.Extensions;
 
 public static class PassengersConversions
 {
-	public static Passenger ToPassenger(this AddPassenger passenger) =>
+	public static Passenger ToPassenger(this AddPassenger passenger, string passengerId = null!) =>
 		new()
 		{
+			Id = passengerId,
 			LastName = passenger.LastName,
 			FirstName = passenger.FirstName,
 			Patronymic = passenger.Patronymic,
