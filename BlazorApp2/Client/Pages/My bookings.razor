@@ -2,39 +2,184 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
+@using Smart.Blazor;
+@using Newtonsoft.Json;
+@using BlazorApp2.Shared;
+@inject HttpClient client;
 
-<PageTitle>My Booking</PageTitle>
+<style>
+    .flights-card {
+        padding: 30px;
+        margin: 0 auto;
+        margin-top: 20px;
+        margin-bottom:20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        width: 600px;
+    }
 
-<h3>My Booking</h3>
+    .container {
+        display: flex;
+        padding: 5px;
+    }
+
+    /*table style*/
+    .table {
+        width: 100%;
+        border: none;
+        margin-bottom: 20px;
+        border-collapse: separate;
+    }
+
+        .table thead th {
+            font-weight: bold;
+            text-align: left;
+            border: none;
+            padding: 10px 15px;
+            background: #EDEDED;
+            font-size: 16px;
+            border-top: 1px solid #ddd;
+        }
+
+        .table tr th:first-child, .table tr td:first-child {
+            border-left: 1px solid #ddd;
+        }
+
+        .table tr th:last-child, .table tr td:last-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .table thead tr th:first-child {
+            border-radius: 20px 0 0 0;
+        }
+
+        .table thead tr th:last-child {
+            border-radius: 0 20px 0 0;
+        }
+
+        .table thead tr th {
+            text-align: center; /* выровнять содержимое ячейки по центру */
+        }
+
+        .table tbody td {
+            text-align: left;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            vertical-align: top;
+            text-align: center; /* выровнять содержимое ячейки по центру */
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: #F8F8F8;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: 1px solid #ddd;
+        }
+
+            .table tbody tr:last-child td:first-child {
+                border-radius: 0 0 0 20px;
+            }
+
+            .table tbody tr:last-child td:last-child {
+                border-radius: 0 0 20px 0;
+            }
+
+    td {
+        text-align: center; /* выровнять содержимое ячейки по центру */
+    }
+
+    .container-image {
+    text-align: center;
+    height: 300px; /* Указать желаемую высоту блока */
+    line-height: 300px; /* Выравнивает содержимое по вертикали */
+}
+.image {
+    display: inline-block;
+    vertical-align: middle;
+}
+</style>
+
+<PageTitle>Мои бронирования</PageTitle>
+
+<h3>Мои бронирования</h3>
 
 <div>
-    <EditForm Model="@Model">
+    <div class="flights-card">
+        <EditForm Model="@Model" OnSubmit="Submit">
+            @* <label style="position: absolute; top: -20px;" for="login-input">Email:</label> *@
+                <Input id="login-input" style="margin-right: 20px;" Placeholder="Email" @bind-Value="Model!.Email" />
 
-        <p>
-            <br />
-            <InputText @bind-Value="Model!.login" />
-        </p>
+            @* <label for="id-input">Серия и номер паспорта:</label> *@
+            <Input id="id-input" Placeholder="Серия и номер паспорта" @bind-Value="Model!.Passport" />
 
-        <p>
-            <br />
-            <InputText @bind-Value="Model!.Id" />
-        </p>
-
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                <Button Class="primary small" type="submit">Найти</Button>
+            </div>
     </EditForm>
+    </div>
 
-    <button type="submit">Find</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Город вылета</th>
+                <th>Город прилета</th>
+                <th>Вылет</th>
+                <th>Прилет</th>
+                <th>Рейс</th>
+                <th>Самолет</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Flights)
+            {
+                <tr>
+                    <td>@item.Route!.DepartureCity</td>
+                    <td>@item.Route!.ArrivalCity</td>
+                    <td>@item.DepartureDate.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.ArrivalDate.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.FlightNumber</td>
+                    <td>@item.Plane</td>
+                    <td>@item.Price ₽</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+            @if (Flights == null || Flights.Count == 0)
+        {
+            <div class="container-image">
+                        <img src="airplane-data.png" width="300" height="300" class="image" alt="Placeholder Image" />
+                        </div>
+                        <div style="text-align: center;">
+                            <p>Ищите свои рейсы</p>
+                        </div>
+        }
 </div>
 
 @code {
 
-    public Passenger? Model { get; set; }
+    public PassengerModel? Model { get; set; }
+    private List<Flight> Flights { get; set; } = new List<Flight>();
 
     protected override void OnInitialized() => Model ??= new();
 
-    public class Passenger
+    private async Task Submit()
+    {
+        using var responsePassenger = await client.GetAsync($"https://localhost:7123/api/passengers?passengerId={Model.Passport}&email={Model.Email}");
+        var body = await responsePassenger.Content.ReadAsStringAsync();
+        Passenger passenger = JsonConvert.DeserializeObject<Passenger>(body)!;
+
+        using var responseFlights = await client.GetAsync($"https://localhost:7123/api/passengers/{passenger.Id}/flights");
+        body = await responseFlights.Content.ReadAsStringAsync();
+        Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body)!.ToList();
+    }
+
+    public class PassengerModel
     {
         [Required]
-        public string? login { get; set; } = "Surname or email";
-        public string? Id { get; set; } = "Order ID, booking ID or eTicket number";
+        public string? Email { get; set; } = "";
+        public string? Passport { get; set; } = "";
     }
 }

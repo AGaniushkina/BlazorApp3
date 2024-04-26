@@ -9,4 +9,8 @@ public class AirportDatabaseSettings
     public string RoutesCollectionName { get; set; } = null!;
 
     public string FlightsCollectionName { get; set; } = null!;
+
+    public string PassengersCollectionName { get; set; } = null!;
+
+	public string PassengerFlightsCollectionName { get; set; } = null!;
 }
