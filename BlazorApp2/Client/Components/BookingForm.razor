@@ -37,12 +37,16 @@
 		Пожалуйста, введите данные латинскими буквами
 	</p>
 	<EditForm Model="@Passenger" OnSubmit="Submit">
+		<DataAnnotationsValidator />
+	<ValidationSummary />
     <div class="container">
-		<Input 
+		<InputText 
+			id="lastname"
 			Style="margin: 10px;" 
-			class="basic-input" 
+			class="form-control"
 			Placeholder="Фамилия" 
 			@bind-Value="Passenger.LastName" />
+			<ValidationMessage For="@(() => Passenger.LastName)" />
 		<Input 
 			Style="margin: 10px;" 
 			class="basic-input" 
