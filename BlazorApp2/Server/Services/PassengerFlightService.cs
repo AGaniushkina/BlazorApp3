@@ -37,4 +37,10 @@ public class PassengerFlightService
 
 	public async Task<List<PassengerFlight>> GetByPassengerIdAsync(string? passengerId) =>
 		await _passengerFlightCollection.Find(x => x.PassengerId == passengerId).ToListAsync();
+
+	public async Task<List<string>> GetFlightIsByPassengerId(string passengerId)
+	{
+		var passengerFlights = await _passengerFlightCollection.Find(x => x.PassengerId == passengerId).ToListAsync();
+		return passengerFlights.Select(x => x.FlightId).ToList();
+	}
 }

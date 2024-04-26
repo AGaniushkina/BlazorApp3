@@ -27,8 +27,9 @@ public class PassengersService
     public async Task<Passenger?> GetAsync(string id) =>
         await _passengersCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
-	public async Task<Passenger?> GetByPassportAsync(string passport) =>
-		await _passengersCollection.Find(x => x.DocumentSeriesAndNumber == passport).FirstOrDefaultAsync();
+    public async Task<Passenger?> GetByPassportAsync(string passport, string email) =>
+        await _passengersCollection.Find(x => x.DocumentSeriesAndNumber == passport
+            && x.Email == email).FirstOrDefaultAsync();
 
 	public async Task CreateAsync(Passenger newPassenger) =>
         await _passengersCollection.InsertOneAsync(newPassenger);

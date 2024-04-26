@@ -10,11 +10,18 @@ namespace BlazorApp2.Server.Controllers;
 public class PassengersController : ControllerBase
 {
     private readonly PassengersService _passengersService;
+    private readonly PassengerFlightService _passengerFlightService;
+    private readonly FlightsService _flightService;
     private readonly IRabbitMqService _mqService;
 
-    public PassengersController(PassengersService passengersService, IRabbitMqService mqService)
+    public PassengersController(PassengersService passengersService, 
+        PassengerFlightService passengerFlightService, 
+        FlightsService flightsService,
+        IRabbitMqService mqService)
     {
         _passengersService = passengersService;
+        _passengerFlightService = passengerFlightService;
+        _flightService = flightsService;
         _mqService = mqService;
     }
 
@@ -29,12 +36,25 @@ public class PassengersController : ControllerBase
 		return Ok();
 	}
 
-    [HttpPost]
-    [Route("{message}")]
-	public IActionResult SendMessage(string message)
-	{
-		_mqService.SendMessage(message);
+    [HttpGet]
+    [Route("{passengerId}/flights")]
+    public async Task<List<Flight>> GetPassengerFlights(string passengerId)
+    {
+        var flightsIds = await _passengerFlightService.GetFlightIsByPassengerId(passengerId);
+        var result = new List<Flight>();
+        foreach(var flightId in flightsIds) 
+        {
+            result.Add(_flightService.GetAsync(flightId));
+        }
+        return result;
+    }
 
-		return Ok("Сообщение отправлено");
-	}
+    [HttpGet]
+    public async Task<ActionResult<Passenger>> GetPassenger(string passengerId, string email)
+    {
+        var passenger = await _passengersService.GetByPassportAsync(passengerId, email);
+        if (passenger != null)
+            return Ok(passenger);
+        return NotFound();
+    }
 }

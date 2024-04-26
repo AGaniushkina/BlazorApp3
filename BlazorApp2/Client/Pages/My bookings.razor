@@ -8,6 +8,16 @@
 @inject HttpClient client;
 
 <style>
+    .flights-card {
+        padding: 30px;
+        margin: 0 auto;
+        margin-top: 20px;
+        margin-bottom:20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        width: 600px;
+    }
+
     .container {
         display: flex;
         padding: 5px;
@@ -79,6 +89,16 @@
     td {
         text-align: center; /* выровнять содержимое ячейки по центру */
     }
+
+    .container-image {
+    text-align: center;
+    height: 300px; /* Указать желаемую высоту блока */
+    line-height: 300px; /* Выравнивает содержимое по вертикали */
+}
+.image {
+    display: inline-block;
+    vertical-align: middle;
+}
 </style>
 
 <PageTitle>Мои бронирования</PageTitle>
@@ -87,19 +107,15 @@
 
 <div>
     <div class="flights-card">
-    <EditForm Model="@Model">
+        <EditForm Model="@Model" OnSubmit="Submit">
+            @* <label style="position: absolute; top: -20px;" for="login-input">Email:</label> *@
+                <Input id="login-input" style="margin-right: 20px;" Placeholder="Email" @bind-Value="Model!.Email" />
 
-        <p>
-            <br />
-            <InputText @bind-Value="Model!.login" />
-        </p>
+            @* <label for="id-input">Серия и номер паспорта:</label> *@
+            <Input id="id-input" Placeholder="Серия и номер паспорта" @bind-Value="Model!.Passport" />
 
-        <p>
-            <br />
-            <InputText @bind-Value="Model!.Id" />
-        </p>
-            <div style="display: flex; justify-content: flex-end;">
-                <Button Class="primary">Найти</Button>
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                <Button Class="primary small" type="submit">Найти</Button>
             </div>
     </EditForm>
     </div>
@@ -107,6 +123,8 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Город вылета</th>
+                <th>Город прилета</th>
                 <th>Вылет</th>
                 <th>Прилет</th>
                 <th>Рейс</th>
@@ -115,31 +133,53 @@
             </tr>
         </thead>
         <tbody>
-@*             @foreach (var item in PassengerFlights)
+            @foreach (var item in Flights)
             {
                 <tr>
-                    <td>@item.flight.DepartureDate.ToString("dd MMM yyyy HH:mm")</td>
-                    <td>@item.flight.ArrivalDate.ToString("dd MMM yyyy HH:mm")</td>
-                    <td>@item.flight.FlightNumber</td>
-                    <td>@item.flight.Plane</td>
-                    <td>@item.flight.Price ₽</td>
-
+                    <td>@item.Route!.DepartureCity</td>
+                    <td>@item.Route!.ArrivalCity</td>
+                    <td>@item.DepartureDate.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.ArrivalDate.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>@item.FlightNumber</td>
+                    <td>@item.Plane</td>
+                    <td>@item.Price ₽</td>
                 </tr>
-            } *@
+            }
         </tbody>
     </table>
+            @if (Flights == null || Flights.Count == 0)
+        {
+            <div class="container-image">
+                        <img src="airplane-data.png" width="300" height="300" class="image" alt="Placeholder Image" />
+                        </div>
+                        <div style="text-align: center;">
+                            <p>Ищите свои рейсы</p>
+                        </div>
+        }
 </div>
 
 @code {
 
-    public Passenger? Model { get; set; }
+    public PassengerModel? Model { get; set; }
+    private List<Flight> Flights { get; set; } = new List<Flight>();
 
     protected override void OnInitialized() => Model ??= new();
 
-    public class Passenger
+    private async Task Submit()
+    {
+        using var responsePassenger = await client.GetAsync($"https://localhost:7123/api/passengers?passengerId={Model.Passport}&email={Model.Email}");
+        var body = await responsePassenger.Content.ReadAsStringAsync();
+        Passenger passenger = JsonConvert.DeserializeObject<Passenger>(body)!;
+
+        using var responseFlights = await client.GetAsync($"https://localhost:7123/api/passengers/{passenger.Id}/flights");
+        body = await responseFlights.Content.ReadAsStringAsync();
+        Flights = JsonConvert.DeserializeObject<IEnumerable<Flight>>(body)!.ToList();
+    }
+
+    public class PassengerModel
     {
         [Required]
-        public string? login { get; set; } = "Surname or email";
-        public string? Id { get; set; } = "Order ID, booking ID or eTicket number";
+        public string? Email { get; set; } = "";
+        public string? Passport { get; set; } = "";
     }
 }

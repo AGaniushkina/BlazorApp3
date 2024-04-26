@@ -32,8 +32,13 @@ public class FlightsService
         return flights;
     }
 
-    public async Task<Flight?> GetAsync(string id) =>
-        await _flightsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+    public Flight? GetAsync(string id) => 
+        _flightsCollection.Aggregate()
+            .Lookup("Routes", "RouteId", "_id", "Route")
+            .Unwind("Route")
+            .As<Flight>()
+            .ToList()
+            .Where(x => x.Id == id).FirstOrDefault();
 
     public async Task CreateAsync(Flight newRoute) =>
         await _flightsCollection.InsertOneAsync(newRoute);
@@ -44,7 +49,8 @@ public class FlightsService
     public async Task RemoveAsync(string id) =>
         await _flightsCollection.DeleteOneAsync(x => x.Id == id);
 
-    public async Task<List<Flight>> GetByCityAsync(string? routeId, DateOnly date) {
+    public async Task<List<Flight>> GetByCityAsync(string? routeId, DateOnly date)
+    {
         var startDay = date.ToDateTime(new TimeOnly(0, 0));
         var endDay = date.AddDays(1).ToDateTime(new TimeOnly(0, 0));
         var flights = await _flightsCollection.Find(x => x.RouteId == routeId).ToListAsync();

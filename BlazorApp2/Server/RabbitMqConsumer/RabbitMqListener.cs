@@ -35,7 +35,8 @@ public class RabbitMqListener : BackgroundService
 			var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
 			BookingModel bookingModel = JsonConvert.DeserializeObject<BookingModel>(content)!;
-			var passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+			var passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!,
+				bookingModel.Passenger.Email);
 			if (passengerId != null)
 			{
 				await _passengersService.UpdateAsync(passengerId, bookingModel.Passenger.ToPassenger(passengerId));
@@ -43,7 +44,8 @@ public class RabbitMqListener : BackgroundService
 			else
 			{
 				await _passengersService.CreateAsync(bookingModel.Passenger.ToPassenger());
-				passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!);
+				passengerId = await GetPassengerId(bookingModel.Passenger.DocumentSeriesAndNumber!, 
+					bookingModel.Passenger.Email);
 			}
 			await _passengerFlightService.CreateAsync(
 				new PassengerFlight
@@ -59,9 +61,9 @@ public class RabbitMqListener : BackgroundService
 		return Task.CompletedTask;
 	}
 
-	private async Task<string?> GetPassengerId(string passport)
+	private async Task<string?> GetPassengerId(string passport, string email)
 	{
-		var passenger = await _passengersService.GetByPassportAsync(passport);
+		var passenger = await _passengersService.GetByPassportAsync(passport, email);
 		return passenger?.Id;
 	}
 
